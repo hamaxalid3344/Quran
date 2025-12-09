@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Quran App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+
+        @font-face {
+            font-family: 'KurdishFont';
+            src: url('./UniSIRWAN\ Qabas\ Bold.ttf') format('truetype'); 
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'KurdishFont';
+            src: url('./UniSIRWAN\ Regular\ Bold.ttf') format('truetype'); 
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'KurdishFont';
+            src: url('./UniSIRWAN\ Qabas\ Light.ttf') format('truetype'); 
+            font-weight: normal;
+            font-style: normal;
+        }
+        /* --- Global Variables --- */
+:root {
+    --bg-main: #f8f9fa;
+    --text-color: #333;
+    --card-bg: #ffffff;
+    --primary: #10b981; 
+    --border: #e5e7eb;
+    --active-tab: #e8fdf5;
+    --header-height: 60px;
+}
+
+[data-theme="dark"] {
+    --bg-main: #000000;
+    --text-color: #ffffff;
+    --card-bg: #121212;
+    --border: #333;
+    --active-tab: #1f2937;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Amiri', sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-color);
+    height: 100vh;
+    overflow: hidden;
+    transition: background 0.3s;
+}
+
+.item-number {
+    font-family: "San Francisco", "Helvetica Neue", sans-serif;
+    font-weight: 500;
+    background: rgba(var(--primary-rgb), 0.1); /* ئەگەر بتوانی RGB بەکاربێنیت */
+    /* یان تەنها کاڵکردنەوەی باکگراوند */
+    background: transparent;
+    border: 2px solid var(--primary);
+    color: var(--primary);
+}
+
+.view {
+    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.4s;
+}
+/* ئەمە پێویستی بە کەمێک دەستکاری JS هەیە بۆ Slide Effect، بەڵام بۆ ئێستا ئەمە بەسە */
+
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* --- Header Styles --- */
+.main-header {
+    height: var(--header-height);
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border);
+    z-index: 10;
+}
+
+.logo { font-size: 1.5rem; font-weight: bold; color: var(--primary); }
+.icon-btn { background: none; border: none; color: var(--text-color); font-size: 1.2rem; cursor: pointer; padding: 5px; }
+
+/* --- Views --- */
+.view { flex: 1; overflow-y: auto; position: relative; display: flex; flex-direction: column; }
+.view.hidden { display: none; }
+.view.active { display: block; } 
+.view.active#home-view { display: flex; flex-direction: column; }
+
+/* --- Home List Styles --- */
+.sticky-header { position: sticky; top: 0; background: var(--bg-main); z-index: 5; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+.search-bar { padding: 15px 20px 10px; position: relative; }
+.search-bar input { width: 100%; padding: 12px 40px 12px 15px; border-radius: 12px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-color); font-family: 'Amiri'; outline: none; font-size: 1rem; }
+.search-bar i { position: absolute; left: 35px; top: 28px; color: gray; }
+.tabs-container { display: flex; padding: 0 20px; gap: 10px; }
+.tab-btn { flex: 1; padding: 10px; border: none; background: var(--card-bg); color: var(--text-color); border-radius: 8px; cursor: pointer; font-family: 'Amiri'; font-weight: bold; font-size: 1rem; transition: all 0.2s; border: 1px solid var(--border); }
+.tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+.list-container { padding: 20px; }
+.list-item { background: var(--card-bg); padding: 15px; margin-bottom: 10px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 1px solid transparent; transition: transform 0.2s; border: 1px solid var(--border); }
+.list-item:hover {
+     border-color: var(--primary); transform: translateY(-2px);
+     }
+     .list-item:active {
+    transform: scale(0.98); /* بچووکبوونەوە کاتی پەنجە لێدان */
+}
+.item-number { background: var(--bg-main); width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--primary); font-size: 0.9rem; }
+.item-info { text-align: right; flex: 1; margin-right: 15px; }
+.item-info h3 { font-size: 1.1rem; margin-bottom: 2px; }
+
+/* --- Reading View (Slider) --- */
+.reading-header {
+    height: var(--header-height);
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 15px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+}
+
+.header-info { display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2; }
+#header-surah { font-family: 'Amiri'; font-weight: bold; font-size: 1.1rem; color: var(--primary); }
+#header-details { font-family: 'Inter', sans-serif; font-size: 0.75rem; color: gray; margin-top: 2px; }
+
+.quran-holder {
+    width: 100%;
+    height: calc(100% - 145px);
+    background: var(--bg-main);
+    overflow: hidden;
+    position: relative;
+}
+
+.slider-container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-direction: row-reverse; /* RTL */
+}
+
+.page-slide {
+    min-width: 100%;
+    height: 100%;
+    scroll-snap-align: center;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.page-slide img {
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    object-fit: contain;
+}
+
+.page-slide img.loaded { opacity: 1; }
+[data-theme="dark"] .page-slide img { filter: invert(1) grayscale(1) brightness(1.5); }
+.slide-spinner { position: absolute; color: var(--primary); z-index: -1; }
+
+
+
+/* ئایکۆنی لای چەپ (سهم) */
+.list-item i.fa-chevron-left {
+    color: var(--primary) !important;
+    font-size: 1rem;
+    opacity: 0.6;
+    background: rgba(var(--primary-rgb), 0.1); /* ئەگەر بتوانی */
+    /* یان تەنها: */
+    background: var(--bg-main);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+/* --- Audio Bar --- */
+.audio-player-bar {
+    position: fixed; bottom: 0; left: 0; right: 0; height: 85px;
+    background: var(--card-bg); border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 25px 15px; z-index: 30;
+}
+.play-group { display: flex; align-items: center; gap: 12px; }
+.reciter-display { display: flex; flex-direction: column; justify-content: center; }
+.reciter-label { font-size: 0.7rem; color: gray; margin-bottom: 2px; }
+#current-reciter-name { font-family: 'Amiri'; font-size: 1rem; font-weight: bold; color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
+
+.play-fab-btn { width: 55px; height: 55px; border-radius: 50%; background: var(--primary); border: none; color: white; font-size: 1.4rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); padding-left: 5px; }
+.play-fab-btn.playing { background: #ef4444; padding-left: 0; }
+.player-options { display: flex; gap: 25px; flex: 1; justify-content: flex-end; align-items: center; }
+.option-wrapper { cursor: pointer; color: gray; transition: color 0.2s; }
+.icon-label { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+.icon-label i { font-size: 1.4rem; }
+.icon-label span { font-size: 0.75rem; font-weight: 500; }
+.option-wrapper:hover .icon-label { color: var(--primary); }
+
+/* --- Tafsir Panel --- */
+.tafsir-panel {
+    position: fixed; bottom: 90px; left: 15px; right: 15px;
+    background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
+    border-radius: 15px; padding: 20px; max-height: 40vh; overflow-y: auto;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2); border: 1px solid var(--primary);
+    z-index: 25; transition: all 0.3s ease; transform: translateY(0); opacity: 1;
+}
+.tafsir-panel.hidden { transform: translateY(20px); opacity: 0; pointer-events: none; display: block !important; }
+.tafsir-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+#tafsir-title { font-weight: bold; color: var(--primary); font-size: 0.9rem; }
+.close-tafsir-btn { background: none; border: none; color: gray; cursor: pointer; }
+.tafsir-text { font-family: 'Inter', 'Amiri', sans-serif; font-size: 1rem; line-height: 1.8; color: var(--text-color); text-align: justify; }
+[data-theme="dark"] .tafsir-panel { background: rgba(30, 30, 30, 0.95); border-color: #444; }
+
+
+/* --- Bottom Sheet --- */
+.bottom-sheet { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 20000; display: flex; flex-direction: column; justify-content: flex-end; pointer-events: none; }
+.bottom-sheet.active { pointer-events: auto; }
+.sheet-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); opacity: 0; transition: opacity 0.3s; }
+.bottom-sheet.active .sheet-overlay { opacity: 1; }
+.sheet-content { background: var(--card-bg); border-radius: 20px 20px 0 0; padding: 20px; z-index: 2; transform: translateY(100%); transition: transform 0.3s; max-height: 60vh; display: flex; flex-direction: column; }
+.bottom-sheet.active .sheet-content { transform: translateY(0); }
+.sheet-header { display: flex; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid var(--border); margin-bottom: 10px; }
+.close-sheet-btn { background: transparent !important; border: none; box-shadow: none; font-size: 1.3rem; color: gray; cursor: pointer; padding: 5px; }
+.sheet-list { overflow-y: auto; }
+.sheet-item { padding: 15px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; cursor: pointer; }
+.sheet-item.selected { color: var(--primary); font-weight: bold; }
+
+/* --- Settings --- */
+.settings-header { padding: 20px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid var(--border); background: var(--card-bg); }
+.settings-list { padding: 20px; }
+.setting-item, .setting-item-col { background: var(--card-bg); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--border); }
+.setting-item { display: flex; justify-content: space-between; align-items: center; }
+.setting-item-col { display: flex; flex-direction: column; gap: 10px; }
+.color-options { display: flex; gap: 15px; flex-wrap: wrap;}
+.color-btn { width: 40px; height: 40px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+.color-btn.selected { border-color: var(--text-color); box-shadow: 0 0 0 2px var(--card-bg), 0 0 0 4px var(--primary); }
+.switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--primary); }
+input:checked + .slider:before { transform: translateX(26px); }
+
+
+/* ڕێکخستنی بەشی سەرووی تەفسیر */
+.header-left-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ستایلی دوگمەی گۆڕین */
+.change-tafsir-btn {
+    background: var(--bg-main);
+    border: 1px solid var(--border);
+    color: var(--primary);
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    font-family: 'Amiri', sans-serif;
+    transition: all 0.2s;
+}
+
+.change-tafsir-btn:hover {
+    background: var(--primary);
+    color: white;
+}
+
+/* --- ڕێکخستنی ڕەنگی ئایکۆنەکان --- */
+
+/* هەموو ئایکۆنەکان با بە هێواشی ڕەنگ بگۆڕن */
+i {
+    transition: color 0.3s ease;
+}
+
+/* ١. ئایکۆنەکانی ناو ڕێکخستنەکان */
+.setting-info i {
+    color: var(--primary) !important;
+    font-size: 1.2rem;
+}
+
+/* ٢. ئایکۆنی گەڕان */
+.search-bar i {
+    color: var(--primary) !important;
+}
+
+/* ٣. ئایکۆنەکانی خوارەوە (تەفسیر و خوێنەر) */
+.option-wrapper i {
+    color: var(--primary); /* لابردنی ڕەنگی خۆڵەمێشی */
+    opacity: 0.7; /* کەمێک کاڵ بۆ ئەوەی جیاواز بێت */
+}
+.option-wrapper:hover i {
+    opacity: 1;
+}
+
+/* ٤. ئایکۆنەکانی هێدەر (Header) و گەڕانەوە */
+.icon-btn i {
+    color: var(--primary) !important;
+}
+
+/* ٥. ئایکۆنی ناو لیستەکان (سهمی چەپ) */
+.list-item i {
+    color: var(--primary) !important;
+    opacity: 0.5;
+}
+
+/* ٦. دوگمەی داخستنی شیتەکان */
+.close-sheet-btn i, .close-settings i, .close-tafsir-btn i {
+    color: var(--primary) !important;
+}
+
+/* تێبینی: ئایکۆنی ناو دوگمەی Play با سپی بێت */
+.play-fab-btn i {
+    color: white !important;
+}
+
+
+/* --- iOS Style Overrides --- */
+
+/* 1. کارتی شووشەیی (Glassmorphism) بۆ لیستەکان */
+.list-item {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0,0,0,0.04);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    border-radius: 20px; /* گۆشەی خڕتر */
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* 2. دوگمەی خڕ و ناسک */
+.tab-btn {
+    border-radius: 20px; /* شێوازی کەپسول */
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+/* 3. ئینپوتی گەڕان (وەک ئایفۆن) */
+.search-bar input {
+    background: var(--card-bg); /* خۆڵەمێشی کاڵ */
+    border: none;
+    border-radius: 18px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    font-weight: 500;
+}
+.search-bar input:focus {
+    background: var(--card-bg);
+    box-shadow: 0 0 0 2px var(--primary);
+}
+
+/* 4. خوارەوەی ئەپەکە (Blur Bar) */
+.audio-player-bar {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(0,0,0,0.05);
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.03);
+}
+[data-theme="dark"] .audio-player-bar {
+    background: rgba(28, 28, 30, 0.85);
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+/* 5. دوگمەی Play (وەک Apple Music) */
+.play-fab-btn {
+    width: 58px;
+    height: 58px;
+    border-radius: 24px; /* کەمێک چوارگۆشەیی خڕ */
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    transition: transform 0.1s;
+}
+.play-fab-btn:active {
+    transform: scale(0.92);
+}
+
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- Home Header -->
+        <header class="main-header" id="main-header">
+            <div class="logo">قورئانی پیرۆز</div>
+            <button id="settings-btn" class="icon-btn">
+                <i class="fas fa-cog"></i>
+            </button>
+        </header>
+
+        <!-- View 1: Home -->
+        <div id="home-view" class="view active">
+            <div class="sticky-header">
+                <div class="search-bar">
+                    <input type="text" placeholder="گەڕان (ناو یان ژمارە)..." id="search-input">
+                    <i class="fas fa-search"></i>
+                </div>
+
+                <div class="tabs-container">
+                    <button class="tab-btn active" onclick="app.switchTab('surah')">سورەت</button>
+                    <button class="tab-btn" onclick="app.switchTab('juz')">جوزء</button>
+                </div>
+            </div>
+            
+            <div class="list-container" id="list-content"></div>
+        </div>
+
+        <!-- View 2: Settings -->
+        <div id="settings-view" class="view hidden">
+            <div class="settings-header">
+                <button id="close-settings" class="icon-btn"><i class="fas fa-arrow-right"></i></button>
+                <h2>ڕێکخستنەکان</h2>
+            </div>
+            <div class="settings-list">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <i class="fas fa-moon"></i>
+                        <span>دۆخی تاریک (Dark Mode)</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="dark-mode-toggle">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="setting-item-col">
+    <div class="setting-title">ڕەنگی ڕووکار (Theme Color)</div>
+    <div class="color-options">
+        <!-- ڕەنگە کۆنەکان -->
+        <div class="color-btn selected" data-color="#10b981" style="background:#10b981;"></div>
+        <div class="color-btn" data-color="#3b82f6" style="background:#3b82f6;"></div>
+        <div class="color-btn" data-color="#8b5cf6" style="background:#8b5cf6;"></div>
+        <div class="color-btn" data-color="#d97706" style="background:#d97706;"></div>
+        <div class="color-btn" data-color="#895129" style="background:#895129;"></div>
+        
+        <!-- ڕەنگە نوێیەکان -->
+        <div class="color-btn" data-color="#e11d48" style="background:#e11d48;"></div> <!-- پەمەیی تۆخ -->
+        <div class="color-btn" data-color="#4f46e5" style="background:#4f46e5;"></div> <!-- نیلی (Indigo) -->
+        <div class="color-btn" data-color="#06b6d4" style="background:#06b6d4;"></div> <!-- فیروزەیی (Cyan) -->
+    </div>
+</div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <i class="fas fa-info-circle"></i>
+                        <span>دەربارەی ئەپ</span>
+                    </div>
+                    <i class="fas fa-chevron-left" style="color:gray; font-size:0.8rem;"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- View 3: Read Quran (Slider) -->
+        <div id="read-view" class="view hidden">
+            <header class="reading-header">
+                <button id="back-from-read" class="icon-btn"><i class="fas fa-arrow-right"></i></button>
+                <div class="header-info">
+                    <span id="header-surah">سورەتی الفاتحة</span>
+                    <span id="header-details">جوزءی ١ • لاپەڕە ١</span>
+                </div>
+                <button class="icon-btn" style="opacity:0; pointer-events:none"><i class="fas fa-cog"></i></button>
+            </header>
+
+            <!-- The Slider Container -->
+            <div class="quran-holder">
+                <div id="quran-slider" class="slider-container">
+                    <!-- Slides will be injected by JS -->
+                </div>
+            </div>
+
+            <!-- Tafsir Panel -->
+            <div id="tafsir-panel" class="tafsir-panel hidden">
+                <div class="tafsir-header">
+                    <span id="tafsir-title">تەفسیر</span>
+                    <button class="close-tafsir-btn" onclick="app.toggleTafsir(false)">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="tafsir-content" class="tafsir-text">
+                    تکایە ئایەتێک لێبدە بۆ نیشاندانی تەفسیر...
+                </div>
+            </div>
+
+            <!-- Audio Player Bar -->
+            <footer class="audio-player-bar">
+                <div class="play-group">
+                    <button id="play-pause-btn" class="play-fab-btn"><i class="fas fa-play"></i></button>
+                    <div class="reciter-display">
+                        <span class="reciter-label">دەخوێنێتەوە:</span>
+                        <span id="current-reciter-name">مشاري العفاسي</span>
+                    </div>
+                </div>
+                <div class="player-options">
+                    <div class="option-wrapper" id="open-reciter-btn">
+                        <div class="icon-label"><i class="fas fa-microphone-alt"></i><span>خوێنەر</span></div>
+                    </div>
+                    <div class="option-wrapper" id="open-tafsir-btn">
+                        <div class="icon-label"><i class="fas fa-book-open"></i><span>تەفسیر</span></div>
+                    </div>
+                </div>
+            </footer>
+            
+            <audio id="audio-element"></audio>
+        </div>
+
+        <!-- Tafsir Panel -->
+<div id="tafsir-panel" class="tafsir-panel hidden">
+    <div class="tafsir-header">
+        <!-- بەشی ڕاست: ناونیشان + دوگمەی گۆڕین -->
+        <div class="header-left-group">
+            <span id="tafsir-title">تەفسیر</span>
+            <button class="change-tafsir-btn" onclick="app.openTafsirSettings()">
+                <i class="fas fa-exchange-alt"></i> گۆڕین
+            </button>
+        </div>
+
+        <!-- دوگمەی داخستن (وەک خۆی) -->
+        <button class="close-tafsir-btn" onclick="app.toggleTafsir(false)">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    
+    <div id="tafsir-content" class="tafsir-text">
+        تکایە ئایەتێک لێبدە بۆ نیشاندانی تەفسیر...
+    </div>
+</div>
+
+
+        <!-- Modals -->
+        <div id="reciter-modal" class="bottom-sheet hidden">
+            <div class="sheet-content">
+                <div class="sheet-header">
+                    <h3>هەڵبژاردنی خوێنەر</h3>
+                    <button class="close-sheet-btn"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="sheet-list" id="reciter-list"></div>
+            </div>
+            <div class="sheet-overlay"></div>
+        </div>
+
+        <div id="tafsir-modal" class="bottom-sheet hidden">
+            <div class="sheet-content">
+                <div class="sheet-header">
+                    <h3>هەڵبژاردنی تەفسیر</h3>
+                    <button class="close-sheet-btn"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="sheet-list" id="tafsir-list"></div>
+            </div>
+            <div class="sheet-overlay"></div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Data ---
+const surahs = [
+    { id: 1, name: "الفاتحة", page: 1, verses: 7 }, { id: 2, name: "البقرة", page: 2, verses: 286 }, { id: 3, name: "آل عمران", page: 50, verses: 200 }, { id: 4, name: "النساء", page: 77, verses: 176 }, { id: 5, name: "المائدة", page: 106, verses: 120 }, { id: 6, name: "الأنعام", page: 128, verses: 165 }, { id: 7, name: "الأعراف", page: 151, verses: 206 }, { id: 8, name: "الأنفال", page: 177, verses: 75 }, { id: 9, name: "التوبة", page: 187, verses: 129 }, { id: 10, name: "يونس", page: 208, verses: 109 }, { id: 11, name: "هود", page: 221, verses: 123 }, { id: 12, name: "يوسف", page: 235, verses: 111 }, { id: 13, name: "الرعد", page: 249, verses: 43 }, { id: 14, name: "إبراهيم", page: 255, verses: 52 }, { id: 15, name: "الحجر", page: 262, verses: 99 }, { id: 16, name: "النحل", page: 267, verses: 128 }, { id: 17, name: "الإسراء", page: 282, verses: 111 }, { id: 18, name: "الكهف", page: 293, verses: 110 }, { id: 19, name: "مريم", page: 305, verses: 98 }, { id: 20, name: "طه", page: 312, verses: 135 }, { id: 21, name: "الأنبياء", page: 322, verses: 112 }, { id: 22, name: "الحج", page: 332, verses: 78 }, { id: 23, name: "المؤمنون", page: 342, verses: 118 }, { id: 24, name: "النور", page: 350, verses: 64 }, { id: 25, name: "الفرقان", page: 359, verses: 77 }, { id: 26, name: "الشعراء", page: 367, verses: 227 }, { id: 27, name: "النمل", page: 377, verses: 93 }, { id: 28, name: "القصص", page: 385, verses: 88 }, { id: 29, name: "العنكبوت", page: 396, verses: 69 }, { id: 30, name: "الروم", page: 404, verses: 60 }, { id: 31, name: "لقمان", page: 411, verses: 34 }, { id: 32, name: "السجدة", page: 415, verses: 30 }, { id: 33, name: "الأحزاب", page: 418, verses: 73 }, { id: 34, name: "سبأ", page: 428, verses: 54 }, { id: 35, name: "فاطر", page: 434, verses: 45 }, { id: 36, name: "يس", page: 440, verses: 83 }, { id: 37, name: "الصافات", page: 446, verses: 182 }, { id: 38, name: "ص", page: 453, verses: 88 }, { id: 39, name: "الزمر", page: 458, verses: 75 }, { id: 40, name: "غافر", page: 467, verses: 85 }, { id: 41, name: "فصلت", page: 477, verses: 54 }, { id: 42, name: "الشورى", page: 483, verses: 53 }, { id: 43, name: "الزخرف", page: 489, verses: 89 }, { id: 44, name: "الدخان", page: 496, verses: 59 }, { id: 45, name: "الجاثية", page: 499, verses: 37 }, { id: 46, name: "الأحقاف", page: 502, verses: 35 }, { id: 47, name: "محمد", page: 507, verses: 38 }, { id: 48, name: "الفتح", page: 511, verses: 29 }, { id: 49, name: "الحجرات", page: 515, verses: 18 }, { id: 50, name: "ق", page: 518, verses: 45 }, { id: 51, name: "الذاريات", page: 520, verses: 60 }, { id: 52, name: "الطور", page: 523, verses: 49 }, { id: 53, name: "النجم", page: 526, verses: 62 }, { id: 54, name: "القمر", page: 528, verses: 55 }, { id: 55, name: "الرحمن", page: 531, verses: 78 }, { id: 56, name: "الواقعة", page: 534, verses: 96 }, { id: 57, name: "الحديد", page: 537, verses: 29 }, { id: 58, name: "المجادلة", page: 542, verses: 22 }, { id: 59, name: "الحشر", page: 545, verses: 24 }, { id: 60, name: "الممتحنة", page: 549, verses: 13 }, { id: 61, name: "الصف", page: 551, verses: 14 }, { id: 62, name: "الجمعة", page: 553, verses: 11 }, { id: 63, name: "المنافقون", page: 554, verses: 11 }, { id: 64, name: "التغابن", page: 556, verses: 18 }, { id: 65, name: "الطلاق", page: 558, verses: 12 }, { id: 66, name: "التحريم", page: 560, verses: 12 }, { id: 67, name: "الملك", page: 562, verses: 30 }, { id: 68, name: "القلم", page: 564, verses: 52 }, { id: 69, name: "الحاقة", page: 566, verses: 52 }, { id: 70, name: "المعارج", page: 568, verses: 44 }, { id: 71, name: "نوح", page: 570, verses: 28 }, { id: 72, name: "الجن", page: 572, verses: 28 }, { id: 73, name: "المزمل", page: 574, verses: 20 }, { id: 74, name: "المدثر", page: 575, verses: 56 }, { id: 75, name: "القيامة", page: 577, verses: 40 }, { id: 76, name: "الإنسان", page: 578, verses: 31 }, { id: 77, name: "المرسلات", page: 580, verses: 50 }, { id: 78, name: "النبأ", page: 582, verses: 40 }, { id: 79, name: "النازعات", page: 583, verses: 46 }, { id: 80, name: "عبس", page: 585, verses: 42 }, { id: 81, name: "التكوير", page: 586, verses: 29 }, { id: 82, name: "الانفطار", page: 587, verses: 19 }, { id: 83, name: "المطففين", page: 587, verses: 36 }, { id: 84, name: "الانشقاق", page: 589, verses: 25 }, { id: 85, name: "البروج", page: 590, verses: 22 }, { id: 86, name: "الطارق", page: 591, verses: 17 }, { id: 87, name: "الأعلى", page: 591, verses: 19 }, { id: 88, name: "الغاشية", page: 592, verses: 26 }, { id: 89, name: "الفجر", page: 593, verses: 30 }, { id: 90, name: "البلد", page: 594, verses: 20 }, { id: 91, name: "الشمس", page: 595, verses: 15 }, { id: 92, name: "الليل", page: 595, verses: 21 }, { id: 93, name: "الضحى", page: 596, verses: 11 }, { id: 94, name: "الشرح", page: 596, verses: 8 }, { id: 95, name: "التين", page: 597, verses: 8 }, { id: 96, name: "العلق", page: 597, verses: 19 }, { id: 97, name: "القدر", page: 598, verses: 5 }, { id: 98, name: "البينة", page: 598, verses: 8 }, { id: 99, name: "الزلزلة", page: 599, verses: 8 }, { id: 100, name: "العاديات", page: 599, verses: 11 }, { id: 101, name: "القارعة", page: 600, verses: 11 }, { id: 102, name: "التكاثر", page: 600, verses: 8 }, { id: 103, name: "العصر", page: 601, verses: 3 }, { id: 104, name: "الهمزة", page: 601, verses: 9 }, { id: 105, name: "الفيل", page: 601, verses: 5 }, { id: 106, name: "قريش", page: 602, verses: 4 }, { id: 107, name: "الماعون", page: 602, verses: 7 }, { id: 108, name: "الكوثر", page: 602, verses: 3 }, { id: 109, name: "الكافرون", page: 603, verses: 6 }, { id: 110, name: "النصر", page: 603, verses: 3 }, { id: 111, name: "المسد", page: 603, verses: 5 }, { id: 112, name: "الإخلاص", page: 604, verses: 4 }, { id: 113, name: "الفلق", page: 604, verses: 5 }, { id: 114, name: "الناس", page: 604, verses: 6 }
+];
+
+const juzData = [
+    { id: 1, page: 1 }, { id: 2, page: 22 }, { id: 3, page: 42 }, { id: 4, page: 62 }, { id: 5, page: 82 }, { id: 6, page: 102 }, { id: 7, page: 122 }, { id: 8, page: 142 }, { id: 9, page: 162 }, { id: 10, page: 182 }, { id: 11, page: 202 }, { id: 12, page: 222 }, { id: 13, page: 242 }, { id: 14, page: 262 }, { id: 15, page: 282 }, { id: 16, page: 302 }, { id: 17, page: 322 }, { id: 18, page: 342 }, { id: 19, page: 362 }, { id: 20, page: 382 }, { id: 21, page: 402 }, { id: 22, page: 422 }, { id: 23, page: 442 }, { id: 24, page: 462 }, { id: 25, page: 482 }, { id: 26, page: 502 }, { id: 27, page: 522 }, { id: 28, page: 542 }, { id: 29, page: 562 }, { id: 30, page: 582 }
+];
+
+const recitersList = [
+    // --- خوێنەرە سەرەکییەکان (کە تاقیت کردونەتەوە) ---
+    { id: 7, name: '1 - شاري العفاسي' },
+    { id: 3, name: '2 - عبد الرحمن السديس' },
+
+    // --- خوێنەرانی تری مەککە و مەدینە (تاقیکراونەتەوە) ---
+    { id: 4, name: '3 - بو بكر الشاطري' },  // زۆر بەناوبانگە
+    { id: 10, name: '4 - سعود الشريم' },    // ئیمامی حەرەم
+    { id: 5, name: '5 - هاني الرفاعي' },    // بۆ گریان و خشوع
+    { id: 11, name: '6 - محمد أيوب' },      // دەنگێکی زۆر خۆش
+    
+    // --- مامۆستایانی میسر (قوتابخانەی کۆن) ---
+    { id: 8, name: '7 - حمد صديق المنشاوي' },
+    { id: 1, name: '8 - عبد الباسط (مورەتەل)' },
+    { id: 2, name: '9 - عبد الباسط (موجەووەد)' }, // ئەگەر حەزت لە مەقاماتە
+    
+
+     // --- گروپی ٢: ئەوانەی لە EveryAyah دەیانهێنین (بە دەق) ---
+    // تێبینی: IDـکانیان دەبێت ڕێک بەم شێوەیە بێت
+    { id: 'Yasser_Ad-Dussary_128kbps', name: '10 - ياسر الدوسري' },
+    { id: 'Nasser_Alqatami_128kbps', name: '11 - ناصر القطامي' },
+    { id: 'MaherAlMuaiqly128kbps', name: '12 - ماهر المعيقلي' }
+];
+
+
+const tafsirList = [
+    // کوردی (بامۆکی)
+    { id: 'kurdish_bamoki', name: 'کوردی (تەفسیری بامۆکی)', source: 'quranenc' },
+    
+    // عەرەبی (مویەسەر) - ئەمە ID ڕاستەکەیەتی لە QuranEnc
+    { id: 'arabic_moyassar', name: 'عربي (التفسير الميسر)', source: 'quranenc' },
+    
+    // ئینگلیزی (سەحیح ئینتەرناشناڵ)
+    { id: 'english_saheeh', name: 'English (Sahih International)', source: 'quranenc' }
+];
+
+
+
+
+
+class QuranApp {
+    constructor() {
+        this.state = {
+            currentPage: 1,
+            isDark: false,
+            activeTab: 'surah',
+            searchQuery: '',
+            currentColor: '#10b981',
+            isPlaying: false,
+            currentReciter: 7, 
+            // ...
+currentTafsir: 'kurdish_bamoki', // با سەرەتا کوردی بێت
+// ...
+
+            isTafsirOpen: false,
+            pageAyahsQueue: [],
+            currentAyahIndex: 0
+        };
+
+        this.ui = {
+            homeView: document.getElementById('home-view'),
+            readView: document.getElementById('read-view'),
+            settingsView: document.getElementById('settings-view'),
+            mainHeader: document.getElementById('main-header'),
+            listContainer: document.getElementById('list-content'),
+            slider: document.getElementById('quran-slider'),
+            headerSurah: document.getElementById('header-surah'),
+            headerDetails: document.getElementById('header-details'),
+            searchInput: document.getElementById('search-input'),
+            tabBtns: document.querySelectorAll('.tab-btn'),
+            darkModeToggle: document.getElementById('dark-mode-toggle'),
+            colorBtns: document.querySelectorAll('.color-btn'),
+            playBtn: document.getElementById('play-pause-btn'),
+            playIcon: document.querySelector('#play-pause-btn i'),
+            audio: document.getElementById('audio-element'),
+            
+            reciterModal: document.getElementById('reciter-modal'),
+            tafsirModal: document.getElementById('tafsir-modal'),
+            reciterListContainer: document.getElementById('reciter-list'),
+            tafsirListContainer: document.getElementById('tafsir-list'),
+            openReciterBtn: document.getElementById('open-reciter-btn'),
+            openTafsirBtn: document.getElementById('open-tafsir-btn'),
+            closeSheetBtns: document.querySelectorAll('.close-sheet-btn'),
+            sheetOverlays: document.querySelectorAll('.sheet-overlay'),
+            currentReciterName: document.getElementById('current-reciter-name'),
+            
+            tafsirPanel: document.getElementById('tafsir-panel'),
+            tafsirContent: document.getElementById('tafsir-content')
+        };
+
+        this.pageObserver = null;
+        this.init();
+    }
+
+    init() {
+        this.renderList();
+        this.setupListeners();
+        this.buildSlider();
+        
+        const savedTheme = localStorage.getItem('theme');
+        if(savedTheme === 'dark') {
+            this.state.isDark = true;
+            this.ui.darkModeToggle.checked = true;
+            document.body.setAttribute('data-theme', 'dark');
+        }
+
+        const savedColor = localStorage.getItem('color');
+        if(savedColor) this.changeAppColor(savedColor);
+        
+        const savedReciter = localStorage.getItem('reciter');
+        if(savedReciter) {
+            if (!isNaN(savedReciter)) {
+                this.state.currentReciter = parseInt(savedReciter);
+            } else {
+                this.state.currentReciter = savedReciter;
+            }
+        }
+        
+        const savedTafsir = localStorage.getItem('tafsir');
+        if(savedTafsir) {
+            if(!isNaN(savedTafsir)) this.state.currentTafsir = parseInt(savedTafsir);
+        }
+
+        this.updateReciterNameDisplay();
+
+          // --- ئەم بەشە زیاد بکە بۆ دروستکردنی دوگمەکە ---
+        const header = document.querySelector('.tafsir-header');
+        if (header) {
+            // پاککردنەوەی کۆنەکە بۆ ئەوەی دووبارە نەبێتەوە
+            header.innerHTML = `
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span id="tafsir-title" style="font-weight:bold; color:var(--primary);">تەفسیر</span>
+                    <button onclick="app.openTafsirSettings()" style="background:var(--bg-main); border:1px solid var(--border); color:var(--primary); padding:4px 8px; border-radius:12px; font-size:0.7rem; cursor:pointer; font-family:'Amiri';">
+                        <i class="fas fa-exchange-alt"></i> گۆڕین
+                    </button>
+                </div>
+                <button class="close-tafsir-btn" onclick="app.toggleTafsir(false)" style="background:none; border:none; color:gray; font-size:1.2rem;">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+    }
+}
+
+    setupListeners() {
+        document.getElementById('settings-btn').onclick = () => this.openSettings();
+        document.getElementById('close-settings').onclick = () => this.closeSettings();
+        this.ui.darkModeToggle.onchange = (e) => this.toggleTheme(e.target.checked);
+        document.getElementById('back-from-read').onclick = () => this.goHome();
+
+        this.ui.searchInput.addEventListener('input', (e) => {
+            this.state.searchQuery = e.target.value.trim();
+            this.renderList();
+        });
+
+        this.ui.colorBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.changeAppColor(btn.getAttribute('data-color'));
+            });
+        });
+
+        this.ui.playBtn.onclick = () => this.toggleAudio();
+        this.ui.audio.onended = () => this.playNextAyahInQueue();
+
+        this.ui.openReciterBtn.onclick = () => {
+            this.populateReciterList();
+            this.openSheet(this.ui.reciterModal);
+        };
+
+        this.ui.openTafsirBtn.onclick = () => {
+            if (this.state.pageAyahsQueue.length === 0) {
+                this.populateTafsirList();
+                this.openSheet(this.ui.tafsirModal);
+            } else {
+                this.toggleTafsir(!this.state.isTafsirOpen);
+            }
+        };
+
+        this.ui.closeSheetBtns.forEach(btn => btn.onclick = () => this.closeAllSheets());
+        this.ui.sheetOverlays.forEach(ov => ov.onclick = () => this.closeAllSheets());
+    }
+
+    buildSlider() {
+        let html = '';
+        for (let i = 1; i <= 604; i++) {
+            html += `
+                <div class="page-slide" id="slide-${i}" data-page="${i}">
+                    <div class="slide-spinner"><i class="fas fa-spinner fa-spin"></i></div>
+                    <img class="quran-page-img" alt="Page ${i}" loading="lazy">
+                </div>
+            `;
+        }
+        this.ui.slider.innerHTML = html;
+        this.setupObserver();
+    }
+
+    setupObserver() {
+        const options = { root: this.ui.slider, rootMargin: '0px', threshold: 0.5 };
+        this.pageObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const pageNum = parseInt(entry.target.getAttribute('data-page'));
+                    if (this.state.currentPage !== pageNum) {
+                        this.state.currentPage = pageNum;
+                        this.handlePageChange(pageNum);
+                    }
+                    this.loadImageForSlide(entry.target);
+                }
+            });
+        }, options);
+        document.querySelectorAll('.page-slide').forEach(slide => this.pageObserver.observe(slide));
+    }
+
+    loadImageForSlide(slideElement) {
+        const img = slideElement.querySelector('img');
+        if (!img.src) {
+            const pageNum = slideElement.getAttribute('data-page');
+            const pageStr = pageNum.toString().padStart(3, '0');
+            img.src = `https://android.quran.com/data/width_1024/page${pageStr}.png`;
+            img.onload = () => img.classList.add('loaded');
+        }
+    }
+
+    handlePageChange(newPage) {
+        this.updateHeaderInfo();
+        if(this.state.isPlaying) {
+            this.toggleAudio(); 
+            this.state.pageAyahsQueue = []; 
+        }
+    }
+
+    openPage(pageNumber) {
+        this.ui.mainHeader.style.display = 'none'; 
+        this.ui.homeView.classList.add('hidden');
+        this.ui.homeView.classList.remove('active');
+        this.ui.readView.classList.remove('hidden');
+        this.ui.readView.classList.add('active');
+
+        const targetSlide = document.getElementById(`slide-${pageNumber}`);
+        if (targetSlide) {
+            targetSlide.scrollIntoView({ behavior: 'auto' });
+            this.state.currentPage = pageNumber;
+            this.loadImageForSlide(targetSlide);
+            this.updateHeaderInfo();
+        }
+    }
+
+    goHome() {
+        // 1. شاردنەوەی لاپەڕەی خوێندنەوە
+        this.ui.readView.classList.add('hidden');
+        this.ui.readView.classList.remove('active');
+        
+        // 2. وەستاندنی دەنگ (ئەگەر لێی دەدا)
+        if(this.state.isPlaying) {
+            this.ui.audio.pause();
+            this.state.isPlaying = false;
+            this.updatePlayButtonUI();
+        }
+        
+        // 3. نیشاندانی هێدەری سەرەکی (Main Header)
+        // زۆر گرنگە: دەبێت بیکەینەوە بە flex نەک block
+        this.ui.mainHeader.style.display = 'flex'; 
+        
+        // 4. نیشاندانی لاپەڕەی سەرەکی (Home View)
+        this.ui.homeView.classList.remove('hidden');
+        this.ui.homeView.classList.add('active');
+    }
+
+    async toggleAudio() {
+        if(this.state.isPlaying) {
+            this.ui.audio.pause();
+            this.state.isPlaying = false;
+            this.updatePlayButtonUI();
+        } else {
+            this.state.isPlaying = true;
+            this.updatePlayButtonUI();
+            if (this.state.pageAyahsQueue.length === 0) {
+                this.ui.playIcon.className = 'fas fa-spinner fa-spin'; 
+                await this.fetchPageAudioData(this.state.currentPage);
+            }
+            this.playCurrentAyah();
+        }
+    }
+
+            async fetchPageAudioData(page) {
+        try {
+            const reciter = this.state.currentReciter;
+            let audioData = [];
+
+            // هێنانی دەنگەکان
+            if (typeof reciter === 'number') {
+                const response = await fetch(`https://api.quran.com/api/v4/quran/recitations/${reciter}?page_number=${page}`);
+                const data = await response.json();
+                const textResponse = await fetch(`https://api.quran.com/api/v4/quran/verses/uthmani?page_number=${page}`);
+                const textData = await textResponse.json();
+
+                if(data.audio_files && textData.verses) {
+                    audioData = data.audio_files.map((audio, index) => ({
+                        audio_url: audio.url,
+                        verse_key: audio.verse_key,
+                        text: textData.verses[index].text_uthmani,
+                        isCustom: false
+                    }));
+                }
+            } else {
+                // هێنانی دەنگ بۆ EveryAyah
+                const response = await fetch(`https://api.quran.com/api/v4/quran/verses/uthmani?page_number=${page}`);
+                const data = await response.json();
+                if (data.verses) {
+                    audioData = data.verses.map(verse => {
+                        const [surah, ay] = verse.verse_key.split(':');
+                        const fileName = `${surah.padStart(3,'0')}${ay.padStart(3,'0')}.mp3`;
+                        return {
+                            audio_url: `https://everyayah.com/data/${reciter}/${fileName}`,
+                            verse_key: verse.verse_key,
+                            text: verse.text_uthmani,
+                            isCustom: true
+                        };
+                    });
+                }
+            }
+
+            this.state.pageAyahsQueue = audioData;
+            this.state.currentAyahIndex = 0;
+            
+            if(!this.state.isPlaying) {
+                this.state.isPlaying = true;
+            }
+            
+            // کاتێک لاپەڕە لۆد بوو، ڕاستەوخۆ یەکەم ئایەت پلەی دەکەین
+            // ئەمەش تەفسیرەکە بانگ دەکات
+            
+        } catch (error) {
+            console.error(error);
+            alert("کێشە لە هێنانی داتا");
+            this.state.isPlaying = false;
+            this.updatePlayButtonUI();
+        }
+    }
+
+
+
+
+            async playCurrentAyah() {
+        if (this.state.pageAyahsQueue.length > 0 && this.state.currentAyahIndex < this.state.pageAyahsQueue.length) {
+            const ayahData = this.state.pageAyahsQueue[this.state.currentAyahIndex];
+            
+            // 1. لێدانی دەنگ
+            let url = ayahData.audio_url;
+            if (!ayahData.isCustom && url && !url.startsWith('http')) {
+                url = `https://verses.quran.com/${url}`;
+            }
+            this.ui.audio.src = url;
+            this.ui.audio.play().catch(e => {
+                console.error(e);
+                this.playNextAyahInQueue();
+            });
+
+            // 2. هێنانی تەفسیر (هەمووی لە QuranEnc)
+            if (this.state.isTafsirOpen) {
+                this.ui.tafsirContent.innerText = "خەریکی هێنانە...";
+                
+                try {
+                    const currentId = this.state.currentTafsir;
+                    // دڵنیابوونەوە لەوەی IDـیەکە دروستە
+                    const tafsirKey = (typeof currentId === 'string') ? currentId : 'kurdish_bamoki';
+                    
+                    const verseKey = ayahData.verse_key; // "1:1"
+                    const [surah, ayah] = verseKey.split(':');
+
+                    // هەموویان لەم لینکەوە دێن - زۆر خێرا و مسۆگەر
+                    const response = await fetch(`https://quranenc.com/api/v1/translation/aya/${tafsirKey}/${surah}/${ayah}`);
+                    const data = await response.json();
+                    
+                    if (data && data.result && data.result.translation) {
+                        // لابردنی تێبینی ژێرپێ (footnotes) ئەگەر هەبوو
+                        let text = data.result.translation;
+                        text = text.replace(/\[\d+\]/g, ''); 
+                        this.ui.tafsirContent.innerText = text;
+                    } else {
+                        this.ui.tafsirContent.innerText = "تەفسیر بەردەست نییە.";
+                    }
+
+                } catch (e) {
+                    console.error(e);
+                    this.ui.tafsirContent.innerText = "کێشە لە ئینتەرنێت.";
+                }
+            }
+
+        } else {
+            this.state.isPlaying = false;
+            this.state.pageAyahsQueue = []; 
+            this.updatePlayButtonUI();
+        }
+    }
+
+
+
+
+
+    playNextAyahInQueue() {
+        if (!this.state.isPlaying) return;
+        this.state.currentAyahIndex++;
+        if (this.state.currentAyahIndex < this.state.pageAyahsQueue.length) {
+            this.playCurrentAyah();
+        } else {
+            this.state.isPlaying = false;
+            this.updatePlayButtonUI();
+        }
+    }
+
+    updatePlayButtonUI() {
+        if(this.state.isPlaying) {
+            this.ui.playIcon.className = 'fas fa-pause';
+            this.ui.playBtn.classList.add('playing');
+        } else {
+            this.ui.playIcon.className = 'fas fa-play';
+            this.ui.playBtn.classList.remove('playing');
+        }
+    }
+
+    toggleTafsir(show) {
+        this.state.isTafsirOpen = show;
+        if (show) {
+            this.ui.tafsirPanel.classList.remove('hidden');
+            this.ui.openTafsirBtn.querySelector('.icon-label').style.color = 'var(--primary)';
+        } else {
+            this.ui.tafsirPanel.classList.add('hidden');
+            this.ui.openTafsirBtn.querySelector('.icon-label').style.color = 'gray';
+        }
+    }
+
+        // ئەم فەنکشنە لیستی تەفسیرەکان دەکاتەوە
+        openTafsirSettings() {
+        this.populateTafsirList(); 
+        // دڵنیابوونەوە لەوەی مۆداڵەکە دەدۆزێتەوە
+        const modal = document.getElementById('tafsir-modal');
+        if (modal) {
+            this.openSheet(modal);
+        } else {
+            alert("لیستی تەفسیرەکان نادۆزرێتەوە");
+        }
+    }
+
+
+
+    // Helpers
+    openSheet(modal) { modal.classList.remove('hidden'); setTimeout(() => modal.classList.add('active'), 10); }
+    closeAllSheets() { this.ui.reciterModal.classList.remove('active'); this.ui.tafsirModal.classList.remove('active'); }
+    
+    populateReciterList() {
+        this.ui.reciterListContainer.innerHTML = recitersList.map(r => `
+            <div class="sheet-item ${this.state.currentReciter == r.id ? 'selected' : ''}" onclick="app.selectReciter('${r.id}')">
+                <span>${r.name}</span><i class="fas fa-check"></i>
+            </div>`).join('');
+    }
+
+    populateTafsirList() {
+        this.ui.tafsirListContainer.innerHTML = tafsirList.map(t => `
+            <div class="sheet-item ${this.state.currentTafsir === t.id ? 'selected' : ''}" onclick="app.selectTafsir('${t.id}')">
+                <span>${t.name}</span><i class="fas fa-check"></i>
+            </div>`).join('');
+    }
+
+    selectReciter(id) {
+        let reciterId = id;
+        if (!isNaN(id)) { reciterId = parseInt(id); }
+        
+        this.state.currentReciter = reciterId;
+        localStorage.setItem('reciter', id);
+        
+        this.updateReciterNameDisplay();
+        this.closeAllSheets();
+        
+        if(this.state.isPlaying) {
+            this.ui.audio.pause();
+            this.state.isPlaying = false;
+            this.updatePlayButtonUI();
+        }
+        this.state.pageAyahsQueue = [];
+        setTimeout(() => this.toggleAudio(), 500);
+    }
+
+    updateReciterNameDisplay() {
+        const reciterId = this.state.currentReciter;
+        const reciter = recitersList.find(r => r.id == reciterId);
+        if (reciter && this.ui.currentReciterName) {
+            this.ui.currentReciterName.innerText = reciter.name;
+        }
+    }
+
+
+
+    selectTafsir(id) {
+        this.state.currentTafsir = id;
+        localStorage.setItem('tafsir', id);
+        
+        this.closeAllSheets();
+        this.toggleTafsir(true); // دڵنیابوونەوە لەوەی سندوقەکە کراوەیە
+        
+        // پشکنین: ئایا ئایەتێک هەیە بۆ ئەوەی تەفسیرەکەی بگۆڕین؟
+        if (this.state.pageAyahsQueue.length > 0) {
+            
+            // حاڵەتی یەکەم: ئەگەر دەنگ خەریکی لێدان بوو
+            if (this.state.isPlaying) {
+                this.playCurrentAyah(); // هەمووی نوێ دەکاتەوە
+            } 
+            
+            // حاڵەتی دووەم: ئەگەر دەنگ وەستابوو (Paused)
+            // لێرەدا نامانەوێت دەنگەکە دەست پێ بکات، تەنها نووسینەکە دەگۆڕین
+            else {
+                const ayahData = this.state.pageAyahsQueue[this.state.currentAyahIndex];
+                const [surah, ayah] = ayahData.verse_key.split(':');
+                
+                this.ui.tafsirContent.innerText = "خەریکی گۆڕینە...";
+                
+                // هێنانی دەقە نوێیەکە بەبێ دەنگ
+                fetch(`https://quranenc.com/api/v1/translation/aya/${id}/${surah}/${ayah}`)
+                    .then(res => res.json())
+                    .then(data => {
+                         if (data && data.result && data.result.translation) {
+                            let text = data.result.translation.replace(/\[\d+\]/g, '');
+                            this.ui.tafsirContent.innerText = text;
+                        }
+                    })
+                    .catch(() => {
+                        this.ui.tafsirContent.innerText = "کێشە لە گۆڕینی تەفسیر.";
+                    });
+            }
+        }
+    }
+
+
+
+
+
+
+
+    updateHeaderInfo() {
+        const page = this.state.currentPage;
+        let currentJuz = 1;
+        for (let i = juzData.length - 1; i >= 0; i--) { if (page >= juzData[i].page) { currentJuz = juzData[i].id; break; } }
+        let currentSurahName = "الفاتحة";
+        for (let i = surahs.length - 1; i >= 0; i--) { if (page >= surahs[i].page) { currentSurahName = surahs[i].name; break; } }
+        this.ui.headerSurah.innerText = `سورەتی ${currentSurahName}`;
+        this.ui.headerDetails.innerText = `جوزءی ${currentJuz} • لاپەڕە ${page}`;
+    }
+
+    normalizeInput(str) { if (!str) return ''; return str.replace(/[٠١٢٣٤٥٦٧٨٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).toLowerCase(); }
+    openSettings() { this.ui.homeView.classList.add('hidden'); this.ui.homeView.classList.remove('active'); this.ui.mainHeader.style.display = 'none'; this.ui.settingsView.classList.remove('hidden'); this.ui.settingsView.classList.add('active'); }
+    closeSettings() { this.ui.settingsView.classList.add('hidden'); this.ui.settingsView.classList.remove('active'); this.ui.mainHeader.style.display = 'flex'; this.ui.homeView.classList.remove('hidden'); this.ui.homeView.classList.add('active'); }
+    
+    switchTab(tabName) {
+        this.state.activeTab = tabName; this.state.searchQuery = ''; this.ui.searchInput.value = '';
+        this.ui.tabBtns.forEach(btn => { if(btn.innerText === (tabName === 'surah' ? 'سورەت' : 'جوزء')) btn.classList.add('active'); else btn.classList.remove('active'); });
+        this.renderList();
+    }
+
+    renderList() {
+        let html = '';
+        const query = this.normalizeInput(this.state.searchQuery);
+        if (this.state.activeTab === 'surah') {
+            const filteredSurahs = surahs.filter(s => s.name.includes(this.state.searchQuery) || s.id.toString().includes(query));
+            html = filteredSurahs.map(s => `
+    <div class="list-item" onclick="app.openPage(${s.page})">
+        <div class="item-number">${s.id}</div>
+        <div class="item-info">
+            <h3>${s.name}</h3>
+            <p>${s.verses} ئایەت</p>
+        </div>
+        <i class="fas fa-chevron-left"></i>
+    </div>
+`).join('');
+        } else {
+            const filteredJuz = juzData.filter(j => j.id.toString().includes(query));
+            html = filteredJuz.map(j => `<div class="list-item" onclick="app.openPage(${j.page})"><div class="item-number">${j.id}</div><div class="item-info"><h3>جوزءی ${j.id}</h3><p style="font-size:0.8rem; color:gray;">لاپەڕە ${j.page}</p></div><i class="fas fa-chevron-left" style="color:var(--border)"></i></div>`).join('');
+        }
+        this.ui.listContainer.innerHTML = html || '<p style="text-align:center; padding:20px; color:gray;">هیچ ئەنجامێک نەدۆزرایەوە</p>';
+    }
+
+    toggleTheme(isDark) { 
+        this.state.isDark = isDark; 
+        document.body.setAttribute('data-theme', isDark ? 'dark' : 'light'); 
+        localStorage.setItem('theme', isDark ? 'dark' : 'light'); 
+    }
+    
+    changeAppColor(color) { 
+        this.state.currentColor = color; 
+        document.documentElement.style.setProperty('--primary', color); 
+        this.ui.colorBtns.forEach(btn => { if(btn.getAttribute('data-color') === color) btn.classList.add('selected'); else btn.classList.remove('selected'); }); 
+        localStorage.setItem('color', color); 
+    }
+}
+
+const app = new QuranApp();
+    </script>
+</body>
+</html>
