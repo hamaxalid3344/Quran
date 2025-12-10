@@ -1,1191 +1,2368 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ckb" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Quran App</title>
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>MapGuide</title>
+    
+    <!-- ========== ئەمانە زیاد بکە ========== -->
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Theme Color (ڕەنگی سەرەوەی براوزەر) -->
+    <meta name="theme-color" content="#1e3a8a">
+    
+    <!-- Icons بۆ iOS (iPhone/iPad) -->
+    <link rel="apple-touch-icon" href="/images/icon-180.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/images/icon-192.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="/images/icon-512.png">
+    
+    <!-- بۆ ئەوەی وەک ئەپ کاربکات -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="MapGuide">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <!-- Favicon بۆ براوزەر -->
+    <link rel="icon" type="image/png" href="/images/icon-192.png">
+    
+    <!-- ========== کۆتایی ========== -->
 
+    
+    <!-- FONTS -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    
+    <!-- LEAFLET & ROUTING CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    
     <style>
+        /* --- CUSTOM FONT: UniSIRWAN Qabas --- */
+@font-face {
+    font-family: 'UniSIRWAN Qabas';
+    src: url('fonts/UniSIRWAN Qabas Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
 
-        @font-face {
-            font-family: 'KurdishFont';
-            src: url('./UniSIRWAN\ Qabas\ Bold.ttf') format('truetype'); 
-            font-weight: normal;
-            font-style: normal;
-        }
+@font-face {
+    font-family: 'UniSIRWAN Qabas';
+    src: url('fonts/UniSIRWAN Qabas Light.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+}
 
-        @font-face {
-            font-family: 'KurdishFont';
-            src: url('./UniSIRWAN\ Regular\ Bold.ttf') format('truetype'); 
-            font-weight: normal;
-            font-style: normal;
-        }
+@font-face {
+    font-family: 'UniSIRWAN Qabas';
+    src: url('fonts/UniSIRWAN Qabas Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+}
 
-        @font-face {
-            font-family: 'KurdishFont';
-            src: url('./UniSIRWAN\ Qabas\ Light.ttf') format('truetype'); 
-            font-weight: normal;
-            font-style: normal;
-        }
-        /* --- Global Variables --- */
+/* --- THEME VARIABLES --- */
 :root {
-    --bg-main: #f8f9fa;
-    --text-color: #333;
-    --card-bg: #ffffff;
-    --primary: #10b981; 
-    --border: #e5e7eb;
-    --active-tab: #e8fdf5;
-    --header-height: 60px;
+    --primary: #4361ee;
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --text: #0f172a;
+    --text-light: #64748b;
+    --border: #e2e8f0;
+    --shadow: 0 4px 20px rgba(0,0,0,0.06);
 }
 
 [data-theme="dark"] {
-    --bg-main: #000000;
-    --text-color: #ffffff;
-    --card-bg: #121212;
-    --border: #333;
-    --active-tab: #1f2937;
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --text: #f1f5f9;
+    --text-light: #94a3b8;
+    --border: #334155;
+    --shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-body {
-    font-family: 'Amiri', sans-serif;
-    background-color: var(--bg-main);
-    color: var(--text-color);
-    height: 100vh;
+/* Fix Scroll Issue */
+html { height: 100%; }
+body { 
+    font-family: 'UniSIRWAN Qabas', 'Noto Sans Arabic', 'Inter', sans-serif; 
+    background-color: var(--bg); 
+    color: var(--text); 
+    height: 100%;
+    display: flex; 
+    flex-direction: column; 
+    overflow-y: auto; 
+}
+
+.app-container {
+    max-width: 600px;
+    margin: 0 auto;
+    width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+header { 
+    position: sticky; top: 0; padding: 1rem 1.5rem; background: var(--bg); z-index: 100; 
+    box-shadow: 0 4px 20px -10px rgba(0,0,0,0.05);
+}
+.header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.logo-text { font-weight: 800; font-size: 1.3rem; display: flex; align-items: center; gap: 6px; }
+
+/* Controls */
+.controls-row { display: flex; gap: 8px; }
+.icon-btn-small {
+    background: var(--surface); border: 1px solid var(--border);
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text);
+}
+.lang-btn {
+    background: var(--surface); border: 1px solid var(--border); 
+    padding: 6px 10px; border-radius: 10px; display: flex; align-items: center; gap: 6px;
+    font-family: inherit; font-weight: 600; color: var(--text); cursor: pointer;
+}
+.lang-dropdown { position: relative; }
+.lang-menu {
+    position: absolute;
+    top: 125%;       /* دێتە خوارەوە */
+    bottom: auto;    /* دڵنیادەبینەوە سەرەوە بەکارناهێنێت */
+    inset-inline-end: 0;
+    background: var(--surface);
+    min-width: 130px;
+    border-radius: 12px;
+    padding: 6px;
+    /* ئەم بەشە گرنگە بۆ ئەوەی لەسەر هەموو شتێک دەربکەوێت */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15); 
+    border: 1px solid var(--border);
+    z-index: 9999 !important; /* ژمارەیەکی زۆر بەرز بۆ ئەوەی ون نەبێت */
+    
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* کاتێک دەکرێتەوە */
+.lang-dropdown.active .lang-menu { 
+    opacity: 1; 
+    visibility: visible; 
+    transform: translateY(0); 
+}
+
+/* --- SHARE MODAL --- */
+.share-modal-content {
+    max-height: 60vh;
+}
+
+.share-body {
+    padding: 1rem 0;
+}
+
+.share-info {
+    text-align: center;
+    padding: 1.5rem;
+    background: var(--bg);
+    border-radius: 16px;
+    margin-bottom: 1.5rem;
+}
+
+.share-info h4 {
+    margin: 1rem 0 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.share-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.share-btn {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.2rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.share-btn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(67, 97, 238, 0.3);
+}
+
+.share-btn .material-icons-round {
+    font-size: 24px;
+}
+
+
+
+.lang-dropdown.active .lang-menu { opacity: 1; visibility: visible; transform: translateY(0); }
+.lang-item { padding: 8px; border-radius: 8px; cursor: pointer; display: flex; justify-content: space-between; font-size: 0.9rem;}
+.lang-item:hover { background: rgba(0,0,0,0.05); }
+
+/* Location Card */
+.location-card { 
+    background: var(--surface); padding: 12px; border-radius: 16px; 
+    display: flex; align-items: center; gap: 12px; cursor: pointer; 
+    border: 1px solid var(--border); position: relative;
+}
+.loc-icon-real { 
+    width: 40px; height: 40px; background: rgba(67, 97, 238, 0.1); color: var(--primary); 
+    border-radius: 12px; display: grid; place-items: center; flex-shrink: 0; 
+}
+.loc-info { flex: 1; overflow: hidden; }
+.loc-label { font-size: 0.7rem; color: var(--text-light); display: block; font-weight: 600;}
+.loc-val { font-size: 0.9rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;}
+.edit-icon { color: var(--text-light); font-size: 18px; }
+
+/* Main Content */
+main { padding: 0 1.5rem 2rem 1.5rem; }
+.section-title { font-size: 1rem; font-weight: 700; margin: 1.5rem 0 0.8rem; }
+.categories-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.cat-card { 
+    background: var(--surface); padding: 0.8rem; border-radius: 16px; 
+    display: flex; flex-direction: column; align-items: center; gap: 8px; 
+    cursor: pointer; border: 1px solid transparent; transition: 0.2s;
+}
+.cat-card.active { border-color: var(--primary); background: rgba(67, 97, 238, 0.05); }
+.cat-icon { width: 45px; height: 45px; border-radius: 14px; display: grid; place-items: center; color: white; }
+
+/* Colors */
+.police-color { background: #1e40af; } .uni-color { background: #7c3aed; } .gov-color { background: #475569; } 
+.hospital-color { background: #ef4444; } .pharmacy-color { background: #10b981; } .food-color { background: #f97316; } 
+.fuel-color { background: #6366f1; } .mosque-color { background: #14b8a6; } .school-color { background: #f59e0b; }
+
+/* Results */
+.list-container { display: flex; flex-direction: column; gap: 12px; padding-bottom: 40px; }
+/* --- PLACE ITEMS (ئەنجامەکان) --- */
+.place-item { 
+    background: var(--surface); 
+    padding: 1.2rem; 
+    border-radius: 18px; 
+    display: flex; 
+    align-items: center; 
+    gap: 1rem; 
+    cursor: pointer; 
+    border: 1px solid var(--border); 
+    position: relative;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.place-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(67, 97, 238, 0.12);
+    border-color: var(--primary);
+}
+
+.dist-badge { 
+    text-align: center; 
+    min-width: 60px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.dist-badge:hover {
+    transform: scale(1.1);
+}
+
+.dist-val { 
+    display: block; 
+    font-weight: 800; 
+    color: var(--primary); 
+    font-size: 1.1rem;
+}
+
+.dist-unit { 
+    font-size: 0.7rem; 
+    color: var(--text-light); 
+    font-weight: 600;
+}
+
+.info-box { 
+    flex: 1; 
     overflow: hidden;
-    transition: background 0.3s;
+    cursor: pointer;
 }
 
-.item-number {
-    font-family: "San Francisco", "Helvetica Neue", sans-serif;
-    font-weight: 500;
-    background: rgba(var(--primary-rgb), 0.1); /* ئەگەر بتوانی RGB بەکاربێنیت */
-    /* یان تەنها کاڵکردنەوەی باکگراوند */
-    background: transparent;
-    border: 2px solid var(--primary);
+.info-box h4 { 
+    font-size: 1rem; 
+    margin-bottom: 4px; 
+    font-weight: 700;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sub-txt { 
+    font-size: 0.8rem; 
+    color: var(--text-light); 
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* --- ACTION BUTTONS GROUP --- */
+.actions-group {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.action-btn {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    padding: 0;
+}
+
+.action-btn .material-icons-round {
+    font-size: 20px;
+    transition: all 0.25s;
+}
+
+/* Share Button - جوانترین */
+.share-btn-small {
+    background: linear-gradient(135deg, rgba(67, 97, 238, 0.1), rgba(67, 97, 238, 0.05));
+    border-color: rgba(67, 97, 238, 0.3);
+}
+
+.share-btn-small .material-icons-round {
     color: var(--primary);
 }
 
-.view {
-    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.4s;
-}
-/* ئەمە پێویستی بە کەمێک دەستکاری JS هەیە بۆ Slide Effect، بەڵام بۆ ئێستا ئەمە بەسە */
-
-
-.app-container {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
+.share-btn-small:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    transform: translateY(-2px) rotate(5deg);
+    box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
 }
 
-/* --- Header Styles --- */
-.main-header {
-    height: var(--header-height);
-    padding: 0 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--card-bg);
-    border-bottom: 1px solid var(--border);
-    z-index: 10;
+.share-btn-small:hover .material-icons-round {
+    color: white;
+    transform: scale(1.15);
 }
 
-.logo { font-size: 1.5rem; font-weight: bold; color: var(--primary); }
-.icon-btn { background: none; border: none; color: var(--text-color); font-size: 1.2rem; cursor: pointer; padding: 5px; }
-
-/* --- Views --- */
-.view { flex: 1; overflow-y: auto; position: relative; display: flex; flex-direction: column; }
-.view.hidden { display: none; }
-.view.active { display: block; } 
-.view.active#home-view { display: flex; flex-direction: column; }
-
-/* --- Home List Styles --- */
-.sticky-header { position: sticky; top: 0; background: var(--bg-main); z-index: 5; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
-.search-bar { padding: 15px 20px 10px; position: relative; }
-.search-bar input { width: 100%; padding: 12px 40px 12px 15px; border-radius: 12px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-color); font-family: 'Amiri'; outline: none; font-size: 1rem; }
-.search-bar i { position: absolute; left: 35px; top: 28px; color: gray; }
-.tabs-container { display: flex; padding: 0 20px; gap: 10px; }
-.tab-btn { flex: 1; padding: 10px; border: none; background: var(--card-bg); color: var(--text-color); border-radius: 8px; cursor: pointer; font-family: 'Amiri'; font-weight: bold; font-size: 1rem; transition: all 0.2s; border: 1px solid var(--border); }
-.tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-.list-container { padding: 20px; }
-.list-item { background: var(--card-bg); padding: 15px; margin-bottom: 10px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 1px solid transparent; transition: transform 0.2s; border: 1px solid var(--border); }
-.list-item:hover {
-     border-color: var(--primary); transform: translateY(-2px);
-     }
-     .list-item:active {
-    transform: scale(0.98); /* بچووکبوونەوە کاتی پەنجە لێدان */
-}
-.item-number { background: var(--bg-main); width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--primary); font-size: 0.9rem; }
-.item-info { text-align: right; flex: 1; margin-right: 15px; }
-.item-info h3 { font-size: 1.1rem; margin-bottom: 2px; }
-
-/* --- Reading View (Slider) --- */
-.reading-header {
-    height: var(--header-height);
-    background: var(--card-bg);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 15px;
-    position: sticky;
-    top: 0;
-    z-index: 20;
+/* Navigation Button */
+.nav-btn-small {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+    border-color: rgba(16, 185, 129, 0.3);
 }
 
-.header-info { display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2; }
-#header-surah { font-family: 'Amiri'; font-weight: bold; font-size: 1.1rem; color: var(--primary); }
-#header-details { font-family: 'Inter', sans-serif; font-size: 0.75rem; color: gray; margin-top: 2px; }
+.nav-btn-small .material-icons-round {
+    color: #10b981;
+}
 
-.quran-holder {
-    width: 100%;
-    height: calc(100% - 145px);
-    background: var(--bg-main);
+.nav-btn-small:hover {
+    background: #10b981;
+    border-color: #10b981;
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.nav-btn-small:hover .material-icons-round {
+    color: white;
+    transform: rotate(-45deg) scale(1.15);
+}
+
+/* Active state */
+.action-btn:active {
+    transform: scale(0.95);
+}
+
+.status-tag { 
+    font-size: 0.65rem; 
+    padding: 4px 10px; 
+    border-radius: 8px; 
+    position: absolute; 
+    top: 12px; 
+    inset-inline-end: 12px; 
+    color: white; 
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 2;
+}
+
+.tag-near { 
+    background: linear-gradient(135deg, #10b981, #059669);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.tag-far { 
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.dist-badge { text-align: center; min-width: 55px; }
+.dist-val { display: block; font-weight: 800; color: var(--primary); }
+.dist-unit { font-size: 0.65rem; color: var(--text-light); }
+.info-box h4 { font-size: 0.95rem; margin-bottom: 2px; }
+.sub-txt { font-size: 0.75rem; color: var(--text-light); }
+.status-tag { font-size: 0.65rem; padding: 2px 8px; border-radius: 6px; position: absolute; top: 10px; inset-inline-end: 10px; color: white; font-weight: 700; }
+.tag-near { background: #10b981; } .tag-far { background: #ef4444; }
+
+/* Modals */
+.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 3000; justify-content: center; align-items: flex-end; }
+.modal-content { 
+    background: var(--surface); width: 100%; max-width: 600px; 
+    border-radius: 24px 24px 0 0; padding: 1.5rem; 
+    display: flex; flex-direction: column; height: 80vh; 
+    animation: slideUp 0.3s ease-out;
+}
+.modal-content.full-screen { height: 100%; border-radius: 0; padding: 0; }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+.modal-header { display: flex; justify-content: space-between; margin-bottom: 1rem; align-items: center; }
+.close-btn { background: none; border: none; cursor: pointer; color: var(--text); padding: 5px; }
+#map { 
+    flex: 1; 
+    border-radius: 16px; 
+    margin-bottom: 1rem; 
+    background: #eee; 
+    z-index: 1; 
+}
+
+/* Auth */
+#auth-container { 
+    position: fixed; 
+    inset: 0; 
+    background: var(--bg); 
+    z-index: 2000; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+}
+.auth-card { 
+    background: var(--surface); 
+    padding: 2.5rem; 
+    border-radius: 24px; 
+    text-align: center; 
+    width: 90%; 
+    max-width: 350px; 
+    box-shadow: var(--shadow); 
+}
+.btn-primary { 
+    font-family: 'UniSIRWAN Qabas', 'Noto Sans Arabic', 'Inter', sans-serif; 
+    background: var(--primary); 
+    color: white; border: none; 
+    padding: 14px; 
+    border-radius: 14px; 
+    font-weight: 700; 
+    cursor: pointer; 
+    width: 100%; 
+    font-size: 1rem; 
+    margin-top: 50px;
+}
+.full-width { width: 100%; }
+
+/* Nav Specific */
+.nav-header { 
+    position: absolute; top: 20px; left: 20px; right: 20px; z-index: 9999; 
+    display: flex; gap: 10px; align-items: center; 
+}
+.back-btn { 
+    background: white; border: none; width: 45px; height: 45px; border-radius: 50%; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1); cursor: pointer; display: grid; place-items: center; color: #0f172a;
+}
+.dest-info { 
+    background: white; 
+    padding: 0 20px; 
+    height: 45px; 
+    border-radius: 25px; 
+    flex: 1; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+    display: flex; 
+    align-items: center; 
+    font-weight: 700; 
+    color: #0f172a;
+    
+    /* چارەسەری تێکستی درێژ */
     overflow: hidden;
-    position: relative;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
-.slider-container {
-    display: flex;
-    width: 100%;
-    height: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-snap-type: x mandatory;
-    scroll-behavior: auto;
-    -webkit-overflow-scrolling: touch;
-    flex-direction: row-reverse; /* RTL */
-}
-
-.page-slide {
-    min-width: 100%;
-    height: 100%;
-    scroll-snap-align: center;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.page-slide img {
+/* دڵنیابوونەوە کە <span>ـەکەش هەمان کێشە نەبێت */
+#nav-dest-name {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
     max-width: 100%;
-    max-height: 100%;
-    display: block;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    object-fit: contain;
 }
 
-.page-slide img.loaded { opacity: 1; }
-[data-theme="dark"] .page-slide img { filter: invert(1) grayscale(1) brightness(1.5); }
-.slide-spinner { position: absolute; color: var(--primary); z-index: -1; }
+#nav-map-container { width: 100%; height: 100%; perspective: 1000px; overflow: hidden; background: #e5e7eb; }
+#nav-map { width: 100%; height: 120%; transform: rotateX(20deg) scale(1.1); transform-origin: center 80%; z-index: 1; }
 
+/* HIDE ROUTING TEXT */
+.leaflet-routing-container { display: none !important; }
+.theme-palette { position: absolute; top: 60px; inset-inline-end: 20px; background: var(--surface); padding: 10px; border-radius: 12px; display: flex; gap: 8px; box-shadow: var(--shadow); opacity: 0; visibility: hidden; transition: 0.2s; z-index: 200; }
+.theme-palette.active { opacity: 1; visibility: visible; }
+.color-dot { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; }
 
+/* --- LOCATION SEARCH BOX --- */
+.search-location-box {
+    margin: 1rem 0 0.5rem;
+    position: relative;
+}
 
-/* ئایکۆنی لای چەپ (سهم) */
-.list-item i.fa-chevron-left {
-    color: var(--primary) !important;
-    font-size: 1rem;
-    opacity: 0.6;
-    background: rgba(var(--primary-rgb), 0.1); /* ئەگەر بتوانی */
-    /* یان تەنها: */
-    background: var(--bg-main);
-    width: 32px;
-    height: 32px;
+.search-input-wrapper {
+    position: relative;
     display: flex;
     align-items: center;
-    justify-content: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 0 12px;
+    transition: all 0.2s;
+}
+
+.search-input-wrapper:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+}
+
+.search-icon {
+    color: var(--text-light);
+    font-size: 20px;
+    margin-inline-end: 8px;
+    padding-left: 10px;
+}
+
+.location-search-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 12px 0;
+    font-family: inherit;
+    font-size: 0.9rem;
+    color: var(--text);
+    outline: none;
+}
+
+.location-search-input::placeholder {
+    color: var(--text-light);
+    opacity: 0.6;
+}
+
+.search-loader {
+    margin-inline-start: 8px;
+}
+
+.spinner-small {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border);
+    border-top-color: var(--primary);
     border-radius: 50%;
+    animation: spin 0.6s linear infinite;
 }
 
-/* --- Audio Bar --- */
-.audio-player-bar {
-    position: fixed; bottom: 0; left: 0; right: 0; height: 85px;
-    background: var(--card-bg); border-top: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 25px 15px; z-index: 30;
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
-.play-group { display: flex; align-items: center; gap: 12px; }
-.reciter-display { display: flex; flex-direction: column; justify-content: center; }
-.reciter-label { font-size: 0.7rem; color: gray; margin-bottom: 2px; }
-#current-reciter-name { font-family: 'Amiri'; font-size: 1rem; font-weight: bold; color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
 
-.play-fab-btn { width: 55px; height: 55px; border-radius: 50%; background: var(--primary); border: none; color: white; font-size: 1.4rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); padding-left: 5px; }
-.play-fab-btn.playing { background: #ef4444; padding-left: 0; }
-.player-options { display: flex; gap: 25px; flex: 1; justify-content: flex-end; align-items: center; }
-.option-wrapper { cursor: pointer; color: gray; transition: color 0.2s; }
-.icon-label { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
-.icon-label i { font-size: 1.4rem; }
-.icon-label span { font-size: 0.75rem; font-weight: 500; }
-.option-wrapper:hover .icon-label { color: var(--primary); }
-
-/* --- Tafsir Panel --- */
-.tafsir-panel {
-    position: fixed; bottom: 90px; left: 15px; right: 15px;
-    background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
-    border-radius: 15px; padding: 20px; max-height: 40vh; overflow-y: auto;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.2); border: 1px solid var(--primary);
-    z-index: 25; transition: all 0.3s ease; transform: translateY(0); opacity: 1;
+/* Search Results Dropdown */
+.search-results-dropdown {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 999;
+    display: none;
 }
-.tafsir-panel.hidden { transform: translateY(20px); opacity: 0; pointer-events: none; display: block !important; }
-.tafsir-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
-#tafsir-title { font-weight: bold; color: var(--primary); font-size: 0.9rem; }
-.close-tafsir-btn { background: none; border: none; color: gray; cursor: pointer; }
-.tafsir-text { font-family: 'Inter', 'Amiri', sans-serif; font-size: 1rem; line-height: 1.8; color: var(--text-color); text-align: justify; }
-[data-theme="dark"] .tafsir-panel { background: rgba(30, 30, 30, 0.95); border-color: #444; }
 
+.search-results-dropdown.show {
+    display: block;
+}
 
-/* --- Bottom Sheet --- */
-.bottom-sheet { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 20000; display: flex; flex-direction: column; justify-content: flex-end; pointer-events: none; }
-.bottom-sheet.active { pointer-events: auto; }
-.sheet-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); opacity: 0; transition: opacity 0.3s; }
-.bottom-sheet.active .sheet-overlay { opacity: 1; }
-.sheet-content { background: var(--card-bg); border-radius: 20px 20px 0 0; padding: 20px; z-index: 2; transform: translateY(100%); transition: transform 0.3s; max-height: 60vh; display: flex; flex-direction: column; }
-.bottom-sheet.active .sheet-content { transform: translateY(0); }
-.sheet-header { display: flex; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid var(--border); margin-bottom: 10px; }
-.close-sheet-btn { background: transparent !important; border: none; box-shadow: none; font-size: 1.3rem; color: gray; cursor: pointer; padding: 5px; }
-.sheet-list { overflow-y: auto; }
-.sheet-item { padding: 15px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; cursor: pointer; }
-.sheet-item.selected { color: var(--primary); font-weight: bold; }
-
-/* --- Settings --- */
-.settings-header { padding: 20px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid var(--border); background: var(--card-bg); }
-.settings-list { padding: 20px; }
-.setting-item, .setting-item-col { background: var(--card-bg); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--border); }
-.setting-item { display: flex; justify-content: space-between; align-items: center; }
-.setting-item-col { display: flex; flex-direction: column; gap: 10px; }
-.color-options { display: flex; gap: 15px; flex-wrap: wrap;}
-.color-btn { width: 40px; height: 40px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
-.color-btn.selected { border-color: var(--text-color); box-shadow: 0 0 0 2px var(--card-bg), 0 0 0 4px var(--primary); }
-.switch { position: relative; display: inline-block; width: 50px; height: 24px; }
-.switch input { opacity: 0; width: 0; height: 0; }
-.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-.slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-input:checked + .slider { background-color: var(--primary); }
-input:checked + .slider:before { transform: translateX(26px); }
-
-
-/* ڕێکخستنی بەشی سەرووی تەفسیر */
-.header-left-group {
+.search-result-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.2s;
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-/* ستایلی دوگمەی گۆڕین */
-.change-tafsir-btn {
-    background: var(--bg-main);
-    border: 1px solid var(--border);
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.search-result-item:hover {
+    background: rgba(67, 97, 238, 0.05);
+}
+
+.search-result-item .material-icons-round {
     color: var(--primary);
-    padding: 4px 10px;
-    border-radius: 15px;
+    font-size: 20px;
+}
+
+.search-result-info {
+    flex: 1;
+}
+
+.search-result-name {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 0.9rem;
+    margin-bottom: 2px;
+}
+
+.search-result-address {
     font-size: 0.75rem;
-    cursor: pointer;
-    font-family: 'Amiri', sans-serif;
+    color: var(--text-light);
+}
+
+.no-results {
+    padding: 20px;
+    text-align: center;
+    color: var(--text-light);
+    font-size: 0.85rem;
+}
+
+
+/* --- ABOUT MODAL STYLES --- */
+.about-modal-content {
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.about-body {
+    padding: 0;
+}
+
+.about-section {
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.about-section:last-child {
+    border-bottom: none;
+}
+
+.app-logo-large {
+    width: 80px;
+    height: 80px;
+    background: var(--primary);
+    color: white;
+    border-radius: 20px;
+    display: grid;
+    place-items: center;
+    margin: 0 auto 1rem;
+}
+
+.app-logo-large .material-icons-round {
+    font-size: 48px;
+}
+
+.app-name {
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 0.3rem;
+    color: var(--text);
+}
+
+.app-version {
+    text-align: center;
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.about-section h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--text);
+}
+
+.about-text {
+    line-height: 1.7;
+    color: var(--text);
+    opacity: 0.85;
+    font-size: 0.9rem;
+}
+
+/* Features List */
+.feature-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.feature-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 0.8rem;
+    background: var(--bg);
+    border-radius: 12px;
+}
+
+.feature-icon {
+    color: var(--primary);
+    font-size: 28px;
+    flex-shrink: 0;
+}
+
+.feature-item strong {
+    display: block;
+    margin-bottom: 0.3rem;
+    color: var(--text);
+    font-size: 0.95rem;
+}
+
+.feature-item p {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    margin: 0;
+}
+
+/* Developer Section */
+.developer-section {
+    background: linear-gradient(135deg, rgba(67, 97, 238, 0.05), rgba(67, 97, 238, 0.02));
+    padding: 1.5rem;
+    border-radius: 16px;
+}
+
+.developer-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.developer-avatar {
+    width: 60px;
+    height: 60px;
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+}
+
+.developer-avatar .material-icons-round {
+    font-size: 32px;
+}
+
+.developer-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+    color: var(--text);
+}
+
+.developer-role {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin-bottom: 0.8rem;
+}
+
+.developer-links {
+    display: flex;
+    gap: 0.8rem;
+    /* flex-wrap: wrap; */
+}
+
+.dev-link {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 0.85rem;
+    transition: 0.2s;
+}
+
+.dev-link:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.dev-link .material-icons-round {
+    font-size: 16px;
+}
+
+/* Credits Section */
+.credits-section {
+    background: var(--bg);
+    padding: 1.5rem;
+    border-radius: 12px;
+}
+
+.credit-item {
+    padding: 0.8rem 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.credit-item:last-child {
+    border-bottom: none;
+}
+
+.credit-item strong {
+    display: block;
+    color: var(--text);
+    margin-bottom: 0.3rem;
+}
+
+.credit-item p {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin: 0;
+}
+
+/* Footer */
+.about-footer {
+    text-align: center;
+    padding: 1.5rem 0;
+    color: var(--text-light);
+    font-size: 0.85rem;
+}
+
+.made-with {
+    margin-top: 0.5rem;
+    font-weight: 500;
+}
+
+
+/* --- PLACE DETAILS MODAL --- */
+.details-modal-content {
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.details-body {
+    padding: 0;
+}
+
+.details-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, rgba(67, 97, 238, 0.08), rgba(67, 97, 238, 0.02));
+    border-radius: 16px;
+    margin-bottom: 1.5rem;
+}
+
+.details-icon {
+    width: 60px;
+    height: 60px;
+    background: var(--primary);
+    color: white;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 8px 20px rgba(67, 97, 238, 0.3);
+}
+
+.details-icon .material-icons-round {
+    font-size: 32px;
+}
+
+.details-header h2 {
+    font-size: 1.3rem;
+    font-weight: 800;
+    margin: 0 0 0.3rem;
+    color: var(--text);
+}
+
+.details-distance {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin: 0;
+    font-weight: 600;
+}
+
+/* Details Grid */
+.details-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.detail-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
     transition: all 0.2s;
 }
 
-.change-tafsir-btn:hover {
+.detail-item:hover {
+    background: var(--bg);
+    border-color: var(--primary);
+}
+
+.detail-icon-wrapper {
+    width: 40px;
+    height: 40px;
+    background: rgba(67, 97, 238, 0.1);
+    color: var(--primary);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.detail-icon-wrapper .material-icons-round {
+    font-size: 22px;
+}
+
+.phone-icon {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.hours-icon {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.website-icon {
+    background: rgba(139, 92, 246, 0.1);
+    color: #8b5cf6;
+}
+
+.type-icon {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.detail-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.detail-label {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.detail-value {
+    font-size: 0.95rem;
+    color: var(--text);
+    font-weight: 600;
+    word-wrap: break-word;
+}
+
+.detail-link {
+    color: var(--primary);
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.detail-link:hover {
+    text-decoration: underline;
+}
+
+/* Action Buttons */
+.details-actions {
+    display: flex;
+    gap: 0.8rem;
+}
+
+.details-action-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    border: none;
+    border-radius: 14px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s;
+}
+
+.details-action-btn.primary {
     background: var(--primary);
     color: white;
 }
 
-/* --- ڕێکخستنی ڕەنگی ئایکۆنەکان --- */
-
-/* هەموو ئایکۆنەکان با بە هێواشی ڕەنگ بگۆڕن */
-i {
-    transition: color 0.3s ease;
+.details-action-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(67, 97, 238, 0.4);
 }
 
-/* ١. ئایکۆنەکانی ناو ڕێکخستنەکان */
-.setting-info i {
-    color: var(--primary) !important;
-    font-size: 1.2rem;
+.details-action-btn.secondary {
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
 }
 
-/* ٢. ئایکۆنی گەڕان */
-.search-bar i {
-    color: var(--primary) !important;
+.details-action-btn.secondary:hover {
+    background: var(--surface);
+    border-color: var(--primary);
 }
 
-/* ٣. ئایکۆنەکانی خوارەوە (تەفسیر و خوێنەر) */
-.option-wrapper i {
-    color: var(--primary); /* لابردنی ڕەنگی خۆڵەمێشی */
-    opacity: 0.7; /* کەمێک کاڵ بۆ ئەوەی جیاواز بێت */
+.details-action-btn .material-icons-round {
+    font-size: 20px;
 }
-.option-wrapper:hover i {
+
+
+.info-btn-small {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+.info-btn-small .material-icons-round {
+    color: #f59e0b;
+}
+
+.info-btn-small:hover {
+    background: #f59e0b;
+    border-color: #f59e0b;
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+}
+
+.info-btn-small:hover .material-icons-round {
+    color: white;
+}
+
+
+/* --- HISTORY MODAL --- */
+.history-modal-content {
+    max-height: 80vh;
+}
+
+.history-body {
+    padding: 0;
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+}
+
+.history-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+}
+
+.history-item:hover {
+    background: var(--bg);
+    border-color: var(--primary);
+    transform: translateX(-3px);
+    box-shadow: 0 4px 16px rgba(67, 97, 238, 0.1);
+}
+
+.history-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, rgba(67, 97, 238, 0.15), rgba(67, 97, 238, 0.05));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.history-icon-wrapper .material-icons-round {
+    color: var(--primary);
+    font-size: 24px;
+}
+
+.history-content {
+    flex: 1;
+    overflow: hidden;
+}
+
+.history-category {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.2rem;
+}
+
+.history-time {
+    font-size: 0.75rem;
+    color: var(--text-light);
+}
+
+.history-delete-btn {
+    width: 32px;
+    height: 32px;
+    background: rgba(239, 68, 68, 0.1);
+    border: none;
+    border-radius: 8px;
+    color: #ef4444;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    opacity: 0;
+}
+
+.history-item:hover .history-delete-btn {
     opacity: 1;
 }
 
-/* ٤. ئایکۆنەکانی هێدەر (Header) و گەڕانەوە */
-.icon-btn i {
-    color: var(--primary) !important;
+.history-delete-btn:hover {
+    background: #ef4444;
+    color: white;
+    transform: scale(1.1);
 }
 
-/* ٥. ئایکۆنی ناو لیستەکان (سهمی چەپ) */
-.list-item i {
-    color: var(--primary) !important;
-    opacity: 0.5;
+.history-delete-btn .material-icons-round {
+    font-size: 18px;
 }
 
-/* ٦. دوگمەی داخستنی شیتەکان */
-.close-sheet-btn i, .close-settings i, .close-tafsir-btn i {
-    color: var(--primary) !important;
+.history-empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-light);
 }
 
-/* تێبینی: ئایکۆنی ناو دوگمەی Play با سپی بێت */
-.play-fab-btn i {
-    color: white !important;
+.history-empty p {
+    margin-top: 1rem;
+    font-size: 1rem;
 }
 
-
-/* --- iOS Style Overrides --- */
-
-/* 1. کارتی شووشەیی (Glassmorphism) بۆ لیستەکان */
-.list-item {
-    background: var(--card-bg);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(0,0,0,0.04);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
-    border-radius: 20px; /* گۆشەی خڕتر */
-    padding: 18px 20px;
-    margin-bottom: 12px;
+.btn-clear-history {
+    width: 100%;
+    padding: 1rem;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 12px;
+    color: #ef4444;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    position: relative;
-    overflow: hidden;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.25s;
+    margin-top: 1rem;
 }
 
-/* 2. دوگمەی خڕ و ناسک */
-.tab-btn {
-    border-radius: 20px; /* شێوازی کەپسول */
-    font-weight: 600;
-    letter-spacing: 0.3px;
+.btn-clear-history:hover {
+    background: #ef4444;
+    color: white;
+    border-color: #ef4444;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3);
 }
 
-/* 3. ئینپوتی گەڕان (وەک ئایفۆن) */
-.search-bar input {
-    background: var(--card-bg); /* خۆڵەمێشی کاڵ */
+.btn-clear-history .material-icons-round {
+    font-size: 20px;
+}
+
+
+/* --- CONFIRM MODAL --- */
+.confirm-modal-content {
+    max-width: 380px;
+    text-align: center;
+    padding: 2rem 1.5rem 1.5rem;
+    animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.confirm-icon-wrapper {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    animation: pulse-warning 2s infinite;
+}
+
+@keyframes pulse-warning {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+    }
+}
+
+.confirm-icon-wrapper .material-icons-round {
+    font-size: 36px;
+    color: #ef4444;
+}
+
+#confirm-title {
+    font-size: 1.3rem;
+    font-weight: 800;
+    margin-bottom: 0.8rem;
+    color: var(--text);
+}
+
+#confirm-message {
+    font-size: 0.95rem;
+    color: var(--text-light);
+    line-height: 1.6;
+    margin-bottom: 2rem;
+}
+
+.confirm-actions {
+    display: flex;
+    gap: 0.8rem;
+}
+
+.confirm-btn {
+    flex: 1;
+    padding: 0.9rem 1.2rem;
     border: none;
-    border-radius: 18px;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    font-weight: 500;
-}
-.search-bar input:focus {
-    background: var(--card-bg);
-    box-shadow: 0 0 0 2px var(--primary);
-}
-
-/* 4. خوارەوەی ئەپەکە (Blur Bar) */
-.audio-player-bar {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(20px);
-    border-top: 1px solid rgba(0,0,0,0.05);
-    box-shadow: 0 -5px 20px rgba(0,0,0,0.03);
-}
-[data-theme="dark"] .audio-player-bar {
-    background: rgba(28, 28, 30, 0.85);
-    border-top: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* 5. دوگمەی Play (وەک Apple Music) */
-.play-fab-btn {
-    width: 58px;
-    height: 58px;
-    border-radius: 24px; /* کەمێک چوارگۆشەیی خڕ */
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-    transition: transform 0.1s;
+.cancel-btn {
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
 }
-.play-fab-btn:active {
-    transform: scale(0.92);
+
+.cancel-btn:hover {
+    background: var(--surface);
+    transform: translateY(-2px);
 }
+
+.confirm-btn-primary {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+.confirm-btn-primary:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+}
+
+.confirm-btn:active {
+    transform: scale(0.95);
+}
+
+/* Unique Location Modal Styles */
+#loc-permission-modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    z-index: 999999; /* زۆر بەرز بۆ ئەوەی بچێتە سەر هەموو شتێک */
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+#loc-permission-modal.loc-show {
+    display: flex;
+    opacity: 1;
+}
+
+.loc-modal-card {
+    background: #1e293b; /* ڕەنگێکی تاریکی جوان */
+    padding: 24px;
+    border-radius: 20px;
+    text-align: center;
+    width: 320px;
+    max-width: 90%;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.1);
+    transform: scale(0.8);
+    transition: transform 0.3s ease;
+}
+
+#loc-permission-modal.loc-show .loc-modal-card {
+    transform: scale(1);
+}
+
+.loc-icon-wrapper {
+    width: 60px; height: 60px;
+    background: rgba(16, 185, 129, 0.15);
+    border-radius: 50%;
+    display: flex; justify-content: center; align-items: center;
+    margin: 0 auto 16px auto;
+    font-size: 28px; color: #10b981;
+}
+
+.loc-title {
+    color: white; font-size: 1.2rem; font-weight: bold; margin-bottom: 8px;
+    font-family: inherit;
+}
+
+.loc-message {
+    color: #94a3b8; font-size: 0.95rem; margin-bottom: 24px; line-height: 1.5;
+    font-family: inherit;
+}
+
+.loc-btn {
+    width: 100%; padding: 14px; border-radius: 12px; border: none;
+    font-size: 1rem; font-weight: 600; cursor: pointer; margin-bottom: 8px;
+    font-family: inherit; transition: 0.2s;
+}
+
+.loc-btn-confirm { background: #10b981; color: white; }
+.loc-btn-confirm:active { transform: scale(0.98); }
+
+.loc-btn-cancel { background: transparent; color: #64748b; }
+.loc-btn-cancel:hover { color: #cbd5e1; }
+
+
+
+
 
     </style>
-</head>
-<body>
 
-    <div class="app-container">
-        
-        <!-- Home Header -->
-        <header class="main-header" id="main-header">
-            <div class="logo">قورئانی پیرۆز</div>
-            <button id="settings-btn" class="icon-btn">
-                <i class="fas fa-cog"></i>
+</head>
+<body data-theme="light">
+
+    <!-- Location Permission Dialog -->
+<div id="loc-permission-modal">
+    <div class="loc-modal-card">
+        <div class="loc-icon-wrapper">
+            <i class="fas fa-location-dot"></i>
+        </div>
+        <h3 class="loc-title">دیاریکردنی شوێن</h3>
+        <p class="loc-message">تکایە ڕێگە بدە شوێنەکەت دیاری بکەین بۆ دۆزینەوەی نزیکترین شوێنەکان.</p>
+        <button class="loc-btn loc-btn-confirm" onclick="confirmLocPermission()">بەڵێ، ڕازیم</button>
+        <button class="loc-btn loc-btn-cancel" onclick="dismissLocModal()">نەخێر</button>
+    </div>
+</div>
+
+
+
+    <!-- Auth Overlay -->
+    <div id="auth-container">
+        <div class="auth-card">
+            <div class="logo-circle"><span class="material-icons-round">near_me</span></div>
+            <h1 id="welcome-msg" data-key="welcome">بەخێربێیت</h1>
+            <button class="btn-primary" onclick="startApp()">
+                <span id="start-btn-txt" data-key="start">دەستپێکردن</span>
             </button>
+        </div>
+    </div>
+
+    <!-- Map Modal (Location Setter) -->
+    <div id="map-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-key="tap_set">شوێن دیاری بکە</h3>
+                <button class="close-btn" onclick="closeMap()"><span class="material-icons-round">close</span></button>
+            </div>
+            <div id="map"></div>
+            <button class="btn-primary full-width" onclick="confirmLocation()" data-key="confirm_loc">جێگیرکردن</button>
+        </div>
+    </div>
+
+    <!-- NAV MODAL (3D NAVIGATION) -->
+    <div id="nav-modal" class="modal" style="z-index: 4000;">
+        <div class="modal-content full-screen">
+            <div class="nav-header">
+                <button class="back-btn" onclick="closeNav()">
+                    <span class="material-icons-round">arrow_forward</span>
+                </button>
+                <div class="dest-info">
+                    <span id="nav-dest-name">بەرەو...</span>
+                </div>
+            </div>
+            <div id="nav-map-container">
+                <div id="nav-map"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Theme Palette -->
+    <div class="theme-palette" id="theme-palette">
+        <div class="color-dot" style="background:#4361ee" onclick="setThemeColor('#4361ee')"></div>
+        <div class="color-dot" style="background:#ef4444" onclick="setThemeColor('#ef4444')"></div>
+        <div class="color-dot" style="background:#10b981" onclick="setThemeColor('#10b981')"></div>
+        <div class="color-dot" style="background:#f59e0b" onclick="setThemeColor('#f59e0b')"></div>
+        <div class="color-dot" style="background:#8b5cf6" onclick="setThemeColor('#8b5cf6')"></div>
+        <div class="color-dot" style="background:#FFCC00" onclick="setThemeColor('#FFCC00')"></div>
+    </div>
+
+    <!-- Main App -->
+    <div id="main-content" class="app-container fade-in">
+        <header>
+            <div class="header-top">
+                <div class="logo-text">
+                    <span class="material-icons-round" style="color:var(--primary)">near_me</span> MapGuide
+                </div>
+                <div class="controls-row">
+                    <div class="lang-dropdown">
+                        <button class="lang-btn" onclick="toggleLangMenu()">
+                            <span class="material-icons-round" style="color:var(--primary); font-size:18px">language</span>
+                            <span id="cur-lang">KU</span>
+                        </button>
+                        <div class="lang-menu">
+                            <div class="lang-item" onclick="setLang('ku')"><span>کوردی</span><span>KU</span></div>
+                            <div class="lang-item" onclick="setLang('en')"><span>English</span><span>EN</span></div>
+                            <div class="lang-item" onclick="setLang('ar')"><span>عربي</span><span>AR</span></div>
+                        </div>
+                    </div>
+                    <div class="icon-btn-small" onclick="toggleDarkMode()">
+                        <span class="material-icons-round" style="color: var(--primary);" id="dark-icon">dark_mode</span>
+                    </div>
+                    <div class="icon-btn-small" onclick="togglePalette()">
+                        <span class="material-icons-round" style="color: var(--primary);">palette</span>
+                    </div>
+
+                        <div class="icon-btn-small" onclick="openAbout()">
+                        <span class="material-icons-round" style="color: var(--primary);">info</span>
+</div>
+                </div>
+            </div>
+            <div class="location-card" onclick="openMap()">
+                <div class="loc-icon-real"><span class="material-icons-round">my_location</span></div>
+                <div class="loc-info">
+                    <span class="loc-label" data-key="current_loc">شوێنی ئێستات</span>
+                    <span id="location-name" class="loc-val">...</span>
+                </div>
+                <span class="material-icons-round edit-icon" style="color: var(--primary);">edit</span>
+            </div>
+
+                        <!-- Search Location Box (لە دوای location-card) -->
+<div class="search-location-box">
+    <div class="search-input-wrapper">
+        <span class="material-icons-round search-icon"> search</span>
+        <input 
+            type="text" 
+            id="location-search-input" 
+            class="location-search-input" 
+            placeholder="گەڕان بەناو شار، گوند یان وڵات..."
+            data-placeholder-ku="گەڕان بەناو شار، گوند یان وڵات..."
+            data-placeholder-en="Search city, village or country..."
+            data-placeholder-ar="البحث عن مدينة أو قرية أو بلد..."
+        />
+        <div class="search-loader" id="search-loader" style="display:none;">
+            <div class="spinner-small"></div>
+        </div>
+    </div>
+    <div id="search-results-dropdown" class="search-results-dropdown"></div>
+</div>
         </header>
 
-        <!-- View 1: Home -->
-        <div id="home-view" class="view active">
-            <div class="sticky-header">
-                <div class="search-bar">
-                    <input type="text" placeholder="گەڕان (ناو یان ژمارە)..." id="search-input">
-                    <i class="fas fa-search"></i>
-                </div>
-
-                <div class="tabs-container">
-                    <button class="tab-btn active" onclick="app.switchTab('surah')">سورەت</button>
-                    <button class="tab-btn" onclick="app.switchTab('juz')">جوزء</button>
-                </div>
+        <main>
+            <h3 class="section-title" data-key="categories">بەشەکان</h3>
+            <div class="categories-grid">
+                <div class="cat-card" onclick="selectCategory(this, 'police', 'police')"><div class="cat-icon police-color"><span class="material-icons-round">security</span></div><span class="t-label" data-key="police">ئاسایش</span></div>
+                <div class="cat-card" onclick="selectCategory(this, 'hospital', 'hospital')"><div class="cat-icon hospital-color"><span class="material-icons-round">nightlight</span></div><span class="t-label" data-key="hospital">نەخۆشخانە</span></div>
+                <div class="cat-card" onclick="selectCategory(this, 'pharmacy', 'pharmacy')"><div class="cat-icon pharmacy-color"><span class="material-icons-round">medication</span></div><span class="t-label" data-key="pharmacy">دەرمانخانە</span></div>
+                <div class="cat-card" onclick="selectCategory(this, 'restaurant', 'restaurant')"><div class="cat-icon food-color"><span class="material-icons-round">restaurant</span></div><span class="t-label" data-key="restaurant">خواردنگە</span></div>
+                <div class="cat-card" onclick="selectCategory(this, 'fuel', 'fuel')"><div class="cat-icon fuel-color"><span class="material-icons-round">local_gas_station</span></div><span class="t-label" data-key="fuel">بەنزینخانە</span></div>
+                <div class="cat-card" onclick="selectCategory(this, 'mosque', 'mosque')"><div class="cat-icon mosque-color"><span class="material-icons-round">mosque</span></div><span class="t-label" data-key="mosque">مزگەوت</span></div>
+                <div class="cat-card" onclick="selectCategory(this, 'school', 'school')"><div class="cat-icon school-color"><span class="material-icons-round">school</span></div><span class="t-label" data-key="school">قوتابخانە</span></div>
+                <div class="cat-card" onclick="selectCategory(this, 'university', 'university')"><div class="cat-icon uni-color"><span class="material-icons-round">school</span></div><span class="t-label" data-key="university">زانکۆ</span></div>
+                <div class="cat-card" onclick="selectCategory(this, 'government', 'government')"><div class="cat-icon gov-color"><span class="material-icons-round">account_balance</span></div><span class="t-label" data-key="government">حکومی</span></div>
             </div>
-            
-            <div class="list-container" id="list-content"></div>
-        </div>
 
-        <!-- View 2: Settings -->
-        <div id="settings-view" class="view hidden">
-            <div class="settings-header">
-                <button id="close-settings" class="icon-btn"><i class="fas fa-arrow-right"></i></button>
-                <h2>ڕێکخستنەکان</h2>
-            </div>
-            <div class="settings-list">
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <i class="fas fa-moon"></i>
-                        <span>دۆخی تاریک (Dark Mode)</span>
+            <div class="results-section">
+                <h3 id="result-title" class="section-title" data-key="nearby">نزیکترین شوێنەکان</h3>
+                <div id="results-container" class="list-container">
+                    <div class="empty-placeholder" style="text-align:center; margin-top:40px; opacity:0.5">
+                        <span class="material-icons-round" style="font-size:50px">place</span>
+                        <p data-key="select_cat">تکایە بەشێک هەڵبژێرە</p>
                     </div>
-                    <label class="switch">
-                        <input type="checkbox" id="dark-mode-toggle">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-                <div class="setting-item-col">
-    <div class="setting-title">ڕەنگی ڕووکار (Theme Color)</div>
-    <div class="color-options">
-        <!-- ڕەنگە کۆنەکان -->
-        <div class="color-btn selected" data-color="#10b981" style="background:#10b981;"></div>
-        <div class="color-btn" data-color="#3b82f6" style="background:#3b82f6;"></div>
-        <div class="color-btn" data-color="#8b5cf6" style="background:#8b5cf6;"></div>
-        <div class="color-btn" data-color="#d97706" style="background:#d97706;"></div>
-        <div class="color-btn" data-color="#895129" style="background:#895129;"></div>
-        
-        <!-- ڕەنگە نوێیەکان -->
-        <div class="color-btn" data-color="#e11d48" style="background:#e11d48;"></div> <!-- پەمەیی تۆخ -->
-        <div class="color-btn" data-color="#4f46e5" style="background:#4f46e5;"></div> <!-- نیلی (Indigo) -->
-        <div class="color-btn" data-color="#06b6d4" style="background:#06b6d4;"></div> <!-- فیروزەیی (Cyan) -->
-    </div>
-</div>
-
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <i class="fas fa-info-circle"></i>
-                        <span>دەربارەی ئەپ</span>
-                    </div>
-                    <i class="fas fa-chevron-left" style="color:gray; font-size:0.8rem;"></i>
-                </div>
-            </div>
-        </div>
-
-        <!-- View 3: Read Quran (Slider) -->
-        <div id="read-view" class="view hidden">
-            <header class="reading-header">
-                <button id="back-from-read" class="icon-btn"><i class="fas fa-arrow-right"></i></button>
-                <div class="header-info">
-                    <span id="header-surah">سورەتی الفاتحة</span>
-                    <span id="header-details">جوزءی ١ • لاپەڕە ١</span>
-                </div>
-                <button class="icon-btn" style="opacity:0; pointer-events:none"><i class="fas fa-cog"></i></button>
-            </header>
-
-            <!-- The Slider Container -->
-            <div class="quran-holder">
-                <div id="quran-slider" class="slider-container">
-                    <!-- Slides will be injected by JS -->
                 </div>
             </div>
 
-            <!-- Tafsir Panel -->
-            <div id="tafsir-panel" class="tafsir-panel hidden">
-                <div class="tafsir-header">
-                    <span id="tafsir-title">تەفسیر</span>
-                    <button class="close-tafsir-btn" onclick="app.toggleTafsir(false)">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div id="tafsir-content" class="tafsir-text">
-                    تکایە ئایەتێک لێبدە بۆ نیشاندانی تەفسیر...
-                </div>
-            </div>
-
-            <!-- Audio Player Bar -->
-            <footer class="audio-player-bar">
-                <div class="play-group">
-                    <button id="play-pause-btn" class="play-fab-btn"><i class="fas fa-play"></i></button>
-                    <div class="reciter-display">
-                        <span class="reciter-label">دەخوێنێتەوە:</span>
-                        <span id="current-reciter-name">مشاري العفاسي</span>
-                    </div>
-                </div>
-                <div class="player-options">
-                    <div class="option-wrapper" id="open-reciter-btn">
-                        <div class="icon-label"><i class="fas fa-microphone-alt"></i><span>خوێنەر</span></div>
-                    </div>
-                    <div class="option-wrapper" id="open-tafsir-btn">
-                        <div class="icon-label"><i class="fas fa-book-open"></i><span>تەفسیر</span></div>
-                    </div>
-                </div>
-            </footer>
-            
-            <audio id="audio-element"></audio>
-        </div>
-
-        <!-- Tafsir Panel -->
-<div id="tafsir-panel" class="tafsir-panel hidden">
-    <div class="tafsir-header">
-        <!-- بەشی ڕاست: ناونیشان + دوگمەی گۆڕین -->
-        <div class="header-left-group">
-            <span id="tafsir-title">تەفسیر</span>
-            <button class="change-tafsir-btn" onclick="app.openTafsirSettings()">
-                <i class="fas fa-exchange-alt"></i> گۆڕین
+            <!-- Share Modal -->
+<div id="share-modal" class="modal">
+    <div class="modal-content share-modal-content">
+        <div class="modal-header">
+            <h3 data-key="share_title">هاوبەشکردنی شوێن</h3>
+            <button class="close-btn" onclick="closeShareModal()">
+                <span class="material-icons-round">close</span>
             </button>
         </div>
-
-        <!-- دوگمەی داخستن (وەک خۆی) -->
-        <button class="close-tafsir-btn" onclick="app.toggleTafsir(false)">
-            <i class="fas fa-times"></i>
-        </button>
+        <div class="share-body">
+            <div class="share-info">
+                <span class="material-icons-round" style="font-size:48px;color:var(--primary)">share_location</span>
+                <h4 id="share-location-name">ناوی شوێنەکە</h4>
+                <p id="share-location-distance" style="color:var(--text-light);font-size:0.9rem;">دوورکەوتنەوە</p>
+            </div>
+            <div class="share-options">
+                <button class="share-btn" onclick="shareViaWeb()">
+                    <span class="material-icons-round">share</span>
+                    <span data-key="share_native">هاوبەشکردن</span>
+                </button>
+                <button class="share-btn" onclick="copyLocation()">
+                    <span class="material-icons-round">content_copy</span>
+                    <span data-key="share_copy">کۆپیکردنی لینک</span>
+                </button>
+            </div>
+        </div>
     </div>
-    
-    <div id="tafsir-content" class="tafsir-text">
-        تکایە ئایەتێک لێبدە بۆ نیشاندانی تەفسیر...
+</div>
+        </main>
+    </div>
+
+        <!-- About Modal -->
+<div id="about-modal" class="modal">
+    <div class="modal-content about-modal-content">
+        <div class="modal-header">
+            <h2 data-key="about_title">دەربارەی ئەپەکە</h2>
+            <button class="close-btn" onclick="closeAbout()">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+        
+        <div class="about-body">
+            <!-- App Info -->
+            <div class="about-section">
+                <div class="app-logo-large">
+                    <span class="material-icons-round">near_me</span>
+                </div>
+                <h1 class="app-name">MapGuide</h1>
+                <p class="app-version" data-key="version">وەشانی ١.٠.٠</p>
+            </div>
+
+            <!-- Description -->
+            <div class="about-section">
+                <h3 data-key="about_desc_title">چییە ئەم ئەپە؟</h3>
+                <p class="about-text" data-key="about_desc">
+                    ئەپێکی بەهێز بۆ دۆزینەوەی نزیکترین شوێنە گرنگەکان لە دەوروبەرت. 
+                    بە بەکارهێنانی تەکنەلۆژیای GPS و نەخشەی OpenStreetMap، 
+                    دەتوانیت بە خێرایی نزیکترین نەخۆشخانە، دەرمانخانە، مزگەوت، 
+                    چێشتخانە و زۆر شوێنی تر بدۆزیتەوە.
+                </p>
+            </div>
+
+            <!-- Features -->
+            <div class="about-section">
+                <h3 data-key="features_title">تایبەتمەندییەکان</h3>
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <span class="material-icons-round feature-icon">gps_fixed</span>
+                        <div>
+                            <strong data-key="feature_gps">دیاریکردنی شوێنی وورد</strong>
+                            <p data-key="feature_gps_desc">بە بەکارهێنانی GPS بە وردی بەرز</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <span class="material-icons-round feature-icon">directions</span>
+                        <div>
+                            <strong data-key="feature_nav">ڕێنیشاندەری 3D</strong>
+                            <p data-key="feature_nav_desc">نەخشەی سێ ڕەهەندی بۆ ڕێنیشاندەری</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <span class="material-icons-round feature-icon">search</span>
+                        <div>
+                            <strong data-key="feature_search">گەڕانی پێشکەوتوو</strong>
+                            <p data-key="feature_search_desc">گەڕان بەناو شار و وڵات</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <span class="material-icons-round feature-icon">dark_mode</span>
+                        <div>
+                            <strong data-key="feature_theme">دۆخی تاریک</strong>
+                            <p data-key="feature_theme_desc">چاودێری لە شەودا</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <span class="material-icons-round feature-icon">language</span>
+                        <div>
+                            <strong data-key="feature_lang">سێ زمان</strong>
+                            <p data-key="feature_lang_desc">کوردی، ئینگلیزی، عەرەبی</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Developer Info -->
+            <div class="about-section developer-section">
+                <h3 data-key="developer_title">گەشەپێدەر</h3>
+                <div class="developer-card">
+                    <div class="developer-avatar">
+                        <span class="material-icons-round">code</span>
+                    </div>
+                    <div class="developer-info">
+                        <h4 class="developer-name" data-key="developer_name">دارا عبدالرحمن علی</h4>
+                        <p class="developer-role" data-key="developer_role">گەشەپێدەری مۆبایل و وێب</p>
+                        <div class="developer-links">
+                            <a href="https://www.facebook.com/share/16qiR7FcFv/?mibextid=wwXIfr" target="_blank" class="dev-link">
+                                 Facebook <span class="material-icons-round">facebook</span>
+                            </a>
+                            <a href="https://t.me/dara_a_ali" class="dev-link">
+                                Telegram <span class="material-icons-round">telegram</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Credits -->
+            <!-- <div class="about-section credits-section">
+                <h3 data-key="credits_title">سوپاس</h3>
+                <div class="credit-item">
+                    <strong>OpenStreetMap</strong>
+                    <p data-key="credit_osm">نەخشە و زانیاریەکان</p>
+                </div>
+                <div class="credit-item">
+                    <strong>Leaflet.js</strong>
+                    <p data-key="credit_leaflet">کتێبخانەی نەخشە</p>
+                </div>
+                <div class="credit-item">
+                    <strong>Nominatim</strong>
+                    <p data-key="credit_nominatim">خزمەتگوزاری گەڕان</p>
+                </div>
+            </div> -->
+
+            <!-- Copyright -->
+            <div class="about-footer">
+                <p data-key="footer">© 2025 MapGuide. All rights reserved.</p>
+                <!-- <p class="made-with">Made with <span style="color:#ef4444;">♥</span> in Kurdistan</p> -->
+            </div>
+        </div>
     </div>
 </div>
 
-
-        <!-- Modals -->
-        <div id="reciter-modal" class="bottom-sheet hidden">
-            <div class="sheet-content">
-                <div class="sheet-header">
-                    <h3>هەڵبژاردنی خوێنەر</h3>
-                    <button class="close-sheet-btn"><i class="fas fa-times"></i></button>
-                </div>
-                <div class="sheet-list" id="reciter-list"></div>
-            </div>
-            <div class="sheet-overlay"></div>
-        </div>
-
-        <div id="tafsir-modal" class="bottom-sheet hidden">
-            <div class="sheet-content">
-                <div class="sheet-header">
-                    <h3>هەڵبژاردنی تەفسیر</h3>
-                    <button class="close-sheet-btn"><i class="fas fa-times"></i></button>
-                </div>
-                <div class="sheet-list" id="tafsir-list"></div>
-            </div>
-            <div class="sheet-overlay"></div>
-        </div>
-
-    </div>
-
+    <!-- SCRIPTS (Order is Critical) -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
     <script>
-        // --- Data ---
-const surahs = [
-    { id: 1, name: "الفاتحة", page: 1, verses: 7 }, { id: 2, name: "البقرة", page: 2, verses: 286 }, { id: 3, name: "آل عمران", page: 50, verses: 200 }, { id: 4, name: "النساء", page: 77, verses: 176 }, { id: 5, name: "المائدة", page: 106, verses: 120 }, { id: 6, name: "الأنعام", page: 128, verses: 165 }, { id: 7, name: "الأعراف", page: 151, verses: 206 }, { id: 8, name: "الأنفال", page: 177, verses: 75 }, { id: 9, name: "التوبة", page: 187, verses: 129 }, { id: 10, name: "يونس", page: 208, verses: 109 }, { id: 11, name: "هود", page: 221, verses: 123 }, { id: 12, name: "يوسف", page: 235, verses: 111 }, { id: 13, name: "الرعد", page: 249, verses: 43 }, { id: 14, name: "إبراهيم", page: 255, verses: 52 }, { id: 15, name: "الحجر", page: 262, verses: 99 }, { id: 16, name: "النحل", page: 267, verses: 128 }, { id: 17, name: "الإسراء", page: 282, verses: 111 }, { id: 18, name: "الكهف", page: 293, verses: 110 }, { id: 19, name: "مريم", page: 305, verses: 98 }, { id: 20, name: "طه", page: 312, verses: 135 }, { id: 21, name: "الأنبياء", page: 322, verses: 112 }, { id: 22, name: "الحج", page: 332, verses: 78 }, { id: 23, name: "المؤمنون", page: 342, verses: 118 }, { id: 24, name: "النور", page: 350, verses: 64 }, { id: 25, name: "الفرقان", page: 359, verses: 77 }, { id: 26, name: "الشعراء", page: 367, verses: 227 }, { id: 27, name: "النمل", page: 377, verses: 93 }, { id: 28, name: "القصص", page: 385, verses: 88 }, { id: 29, name: "العنكبوت", page: 396, verses: 69 }, { id: 30, name: "الروم", page: 404, verses: 60 }, { id: 31, name: "لقمان", page: 411, verses: 34 }, { id: 32, name: "السجدة", page: 415, verses: 30 }, { id: 33, name: "الأحزاب", page: 418, verses: 73 }, { id: 34, name: "سبأ", page: 428, verses: 54 }, { id: 35, name: "فاطر", page: 434, verses: 45 }, { id: 36, name: "يس", page: 440, verses: 83 }, { id: 37, name: "الصافات", page: 446, verses: 182 }, { id: 38, name: "ص", page: 453, verses: 88 }, { id: 39, name: "الزمر", page: 458, verses: 75 }, { id: 40, name: "غافر", page: 467, verses: 85 }, { id: 41, name: "فصلت", page: 477, verses: 54 }, { id: 42, name: "الشورى", page: 483, verses: 53 }, { id: 43, name: "الزخرف", page: 489, verses: 89 }, { id: 44, name: "الدخان", page: 496, verses: 59 }, { id: 45, name: "الجاثية", page: 499, verses: 37 }, { id: 46, name: "الأحقاف", page: 502, verses: 35 }, { id: 47, name: "محمد", page: 507, verses: 38 }, { id: 48, name: "الفتح", page: 511, verses: 29 }, { id: 49, name: "الحجرات", page: 515, verses: 18 }, { id: 50, name: "ق", page: 518, verses: 45 }, { id: 51, name: "الذاريات", page: 520, verses: 60 }, { id: 52, name: "الطور", page: 523, verses: 49 }, { id: 53, name: "النجم", page: 526, verses: 62 }, { id: 54, name: "القمر", page: 528, verses: 55 }, { id: 55, name: "الرحمن", page: 531, verses: 78 }, { id: 56, name: "الواقعة", page: 534, verses: 96 }, { id: 57, name: "الحديد", page: 537, verses: 29 }, { id: 58, name: "المجادلة", page: 542, verses: 22 }, { id: 59, name: "الحشر", page: 545, verses: 24 }, { id: 60, name: "الممتحنة", page: 549, verses: 13 }, { id: 61, name: "الصف", page: 551, verses: 14 }, { id: 62, name: "الجمعة", page: 553, verses: 11 }, { id: 63, name: "المنافقون", page: 554, verses: 11 }, { id: 64, name: "التغابن", page: 556, verses: 18 }, { id: 65, name: "الطلاق", page: 558, verses: 12 }, { id: 66, name: "التحريم", page: 560, verses: 12 }, { id: 67, name: "الملك", page: 562, verses: 30 }, { id: 68, name: "القلم", page: 564, verses: 52 }, { id: 69, name: "الحاقة", page: 566, verses: 52 }, { id: 70, name: "المعارج", page: 568, verses: 44 }, { id: 71, name: "نوح", page: 570, verses: 28 }, { id: 72, name: "الجن", page: 572, verses: 28 }, { id: 73, name: "المزمل", page: 574, verses: 20 }, { id: 74, name: "المدثر", page: 575, verses: 56 }, { id: 75, name: "القيامة", page: 577, verses: 40 }, { id: 76, name: "الإنسان", page: 578, verses: 31 }, { id: 77, name: "المرسلات", page: 580, verses: 50 }, { id: 78, name: "النبأ", page: 582, verses: 40 }, { id: 79, name: "النازعات", page: 583, verses: 46 }, { id: 80, name: "عبس", page: 585, verses: 42 }, { id: 81, name: "التكوير", page: 586, verses: 29 }, { id: 82, name: "الانفطار", page: 587, verses: 19 }, { id: 83, name: "المطففين", page: 587, verses: 36 }, { id: 84, name: "الانشقاق", page: 589, verses: 25 }, { id: 85, name: "البروج", page: 590, verses: 22 }, { id: 86, name: "الطارق", page: 591, verses: 17 }, { id: 87, name: "الأعلى", page: 591, verses: 19 }, { id: 88, name: "الغاشية", page: 592, verses: 26 }, { id: 89, name: "الفجر", page: 593, verses: 30 }, { id: 90, name: "البلد", page: 594, verses: 20 }, { id: 91, name: "الشمس", page: 595, verses: 15 }, { id: 92, name: "الليل", page: 595, verses: 21 }, { id: 93, name: "الضحى", page: 596, verses: 11 }, { id: 94, name: "الشرح", page: 596, verses: 8 }, { id: 95, name: "التين", page: 597, verses: 8 }, { id: 96, name: "العلق", page: 597, verses: 19 }, { id: 97, name: "القدر", page: 598, verses: 5 }, { id: 98, name: "البينة", page: 598, verses: 8 }, { id: 99, name: "الزلزلة", page: 599, verses: 8 }, { id: 100, name: "العاديات", page: 599, verses: 11 }, { id: 101, name: "القارعة", page: 600, verses: 11 }, { id: 102, name: "التكاثر", page: 600, verses: 8 }, { id: 103, name: "العصر", page: 601, verses: 3 }, { id: 104, name: "الهمزة", page: 601, verses: 9 }, { id: 105, name: "الفيل", page: 601, verses: 5 }, { id: 106, name: "قريش", page: 602, verses: 4 }, { id: 107, name: "الماعون", page: 602, verses: 7 }, { id: 108, name: "الكوثر", page: 602, verses: 3 }, { id: 109, name: "الكافرون", page: 603, verses: 6 }, { id: 110, name: "النصر", page: 603, verses: 3 }, { id: 111, name: "المسد", page: 603, verses: 5 }, { id: 112, name: "الإخلاص", page: 604, verses: 4 }, { id: 113, name: "الفلق", page: 604, verses: 5 }, { id: 114, name: "الناس", page: 604, verses: 6 }
-];
-
-const juzData = [
-    { id: 1, page: 1 }, { id: 2, page: 22 }, { id: 3, page: 42 }, { id: 4, page: 62 }, { id: 5, page: 82 }, { id: 6, page: 102 }, { id: 7, page: 122 }, { id: 8, page: 142 }, { id: 9, page: 162 }, { id: 10, page: 182 }, { id: 11, page: 202 }, { id: 12, page: 222 }, { id: 13, page: 242 }, { id: 14, page: 262 }, { id: 15, page: 282 }, { id: 16, page: 302 }, { id: 17, page: 322 }, { id: 18, page: 342 }, { id: 19, page: 362 }, { id: 20, page: 382 }, { id: 21, page: 402 }, { id: 22, page: 422 }, { id: 23, page: 442 }, { id: 24, page: 462 }, { id: 25, page: 482 }, { id: 26, page: 502 }, { id: 27, page: 522 }, { id: 28, page: 542 }, { id: 29, page: 562 }, { id: 30, page: 582 }
-];
-
-const recitersList = [
-    // --- خوێنەرە سەرەکییەکان (کە تاقیت کردونەتەوە) ---
-    { id: 7, name: '1 - شاري العفاسي' },
-    { id: 3, name: '2 - عبد الرحمن السديس' },
-
-    // --- خوێنەرانی تری مەککە و مەدینە (تاقیکراونەتەوە) ---
-    { id: 4, name: '3 - بو بكر الشاطري' },  // زۆر بەناوبانگە
-    { id: 10, name: '4 - سعود الشريم' },    // ئیمامی حەرەم
-    { id: 5, name: '5 - هاني الرفاعي' },    // بۆ گریان و خشوع
-    { id: 11, name: '6 - محمد أيوب' },      // دەنگێکی زۆر خۆش
-    
-    // --- مامۆستایانی میسر (قوتابخانەی کۆن) ---
-    { id: 8, name: '7 - حمد صديق المنشاوي' },
-    { id: 1, name: '8 - عبد الباسط (مورەتەل)' },
-    { id: 2, name: '9 - عبد الباسط (موجەووەد)' }, // ئەگەر حەزت لە مەقاماتە
-    
-
-     // --- گروپی ٢: ئەوانەی لە EveryAyah دەیانهێنین (بە دەق) ---
-    // تێبینی: IDـکانیان دەبێت ڕێک بەم شێوەیە بێت
-    { id: 'Yasser_Ad-Dussary_128kbps', name: '10 - ياسر الدوسري' },
-    { id: 'Nasser_Alqatami_128kbps', name: '11 - ناصر القطامي' },
-    { id: 'MaherAlMuaiqly128kbps', name: '12 - ماهر المعيقلي' }
-];
-
-
-const tafsirList = [
-    // کوردی (بامۆکی)
-    { id: 'kurdish_bamoki', name: 'کوردی (تەفسیری بامۆکی)', source: 'quranenc' },
-    
-    // عەرەبی (مویەسەر) - ئەمە ID ڕاستەکەیەتی لە QuranEnc
-    { id: 'arabic_moyassar', name: 'عربي (التفسير الميسر)', source: 'quranenc' },
-    
-    // ئینگلیزی (سەحیح ئینتەرناشناڵ)
-    { id: 'english_saheeh', name: 'English (Sahih International)', source: 'quranenc' }
-];
-
-
-
-
-
-class QuranApp {
-    constructor() {
-        this.state = {
-            currentPage: 1,
-            isDark: false,
-            activeTab: 'surah',
-            searchQuery: '',
-            currentColor: '#10b981',
-            isPlaying: false,
-            currentReciter: 7, 
-            // ...
-currentTafsir: 'kurdish_bamoki', // با سەرەتا کوردی بێت
-// ...
-
-            isTafsirOpen: false,
-            pageAyahsQueue: [],
-            currentAyahIndex: 0
-        };
-
-        this.ui = {
-            homeView: document.getElementById('home-view'),
-            readView: document.getElementById('read-view'),
-            settingsView: document.getElementById('settings-view'),
-            mainHeader: document.getElementById('main-header'),
-            listContainer: document.getElementById('list-content'),
-            slider: document.getElementById('quran-slider'),
-            headerSurah: document.getElementById('header-surah'),
-            headerDetails: document.getElementById('header-details'),
-            searchInput: document.getElementById('search-input'),
-            tabBtns: document.querySelectorAll('.tab-btn'),
-            darkModeToggle: document.getElementById('dark-mode-toggle'),
-            colorBtns: document.querySelectorAll('.color-btn'),
-            playBtn: document.getElementById('play-pause-btn'),
-            playIcon: document.querySelector('#play-pause-btn i'),
-            audio: document.getElementById('audio-element'),
-            
-            reciterModal: document.getElementById('reciter-modal'),
-            tafsirModal: document.getElementById('tafsir-modal'),
-            reciterListContainer: document.getElementById('reciter-list'),
-            tafsirListContainer: document.getElementById('tafsir-list'),
-            openReciterBtn: document.getElementById('open-reciter-btn'),
-            openTafsirBtn: document.getElementById('open-tafsir-btn'),
-            closeSheetBtns: document.querySelectorAll('.close-sheet-btn'),
-            sheetOverlays: document.querySelectorAll('.sheet-overlay'),
-            currentReciterName: document.getElementById('current-reciter-name'),
-            
-            tafsirPanel: document.getElementById('tafsir-panel'),
-            tafsirContent: document.getElementById('tafsir-content')
-        };
-
-        this.pageObserver = null;
-        this.init();
+      // --- ADD TO TRANSLATION OBJECT ---
+const trans = {
+    ku: {
+        police: "ئاسایش", 
+        university: "زانکۆ", 
+        government: "حکومی", 
+        hospital: "نەخۆشخانە", 
+        pharmacy: "دەرمانخانە", 
+        navigate: "ڕێنیشاندەر",
+        history_title: "مێژووی گەڕان",
+    history_empty: "هیچ مێژوویەک نییە",
+    clear_history: "سڕینەوەی مێژوو",
+    confirm_clear: "دڵنیایت لە سڕینەوەی هەموو مێژووەکە؟",
+    just_now: "ئێستا",
+    mins_ago: "خولەک پێشتر",
+    hours_ago: "کاتژمێر پێشتر",
+    days_ago: "ڕۆژ پێشتر",
+        restaurant: "خواردنگە", 
+        confirm_clear_title: "سڕینەوەی مێژوو",
+    confirm_clear: "دڵنیایت لە سڕینەوەی هەموو مێژووەکە؟ ئەم کردارە ناگەڕێتەوە.",
+    history_cleared: "مێژووەکە بە سەرکەوتوویی سڕایەوە!",
+    cancel: "هەڵوەشاندنەوە",
+    confirm: "دڵنیام",
+        mosque: "مزگەوت", 
+        share_title: "هاوبەشکردنی شوێن",
+    share_native: "هاوبەشکردن",
+    share_copy: "کۆپیکردنی لینک",
+    share_maps: "کردنەوە لە Maps",
+    share_text: "سەیری ئەم شوێنە بکە",
+    share_copied: "لینکەکە کۆپی کرا!",
+        fuel: "بەنزینخانە", 
+        school: "قوتابخانە",
+        current_loc: "شوێنی ئێستات", 
+        tap_set: "شوێن دیاری بکە", 
+        nearby: "نزیکترین", 
+        categories: "بەشەکان", 
+        select_cat: "بەشێک هەڵبژێرە", 
+        finding_loc: "دۆزینەوە...", 
+        footer: "© 2025 MapGuide. هەموو مافەکان پارێزراوە.",
+        confirm_loc: "جێگیرکردن", 
+        no_result: "هیچ نەدۆزرایەوە", 
+        tag_near: "نزیکترین", 
+        tag_far: "دوورترین", 
+        dozinawa: "دۆزینەوە",
+        welcome: "بەخێربێیت", 
+        start: "دەستپێکردن",
+        about_title: "دەربارەی ئەپەکە",
+        about_desc_title: "چییە ئەم ئەپە؟",
+        about_desc: "ئەپێکی بەهێز بۆ دۆزینەوەی نزیکترین شوێنە گرنگەکان لە دەوروبەرت. بە بەکارهێنانی تەکنەلۆژیای GPS و نەخشەی OpenStreetMap، دەتوانیت بە خێرایی نزیکترین نەخۆشخانە، دەرمانخانە، مزگەوت، چێشتخانە و زۆر شوێنی تر بدۆزیتەوە.",
+        features_title: "تایبەتمەندییەکان",
+        feature_gps: "دیاریکردنی شوێنی وورد",
+        feature_gps_desc: "بە بەکارهێنانی GPS بە وردی بەرز",
+        feature_nav: "ڕێنیشاندەری 3D",
+        feature_nav_desc: "نەخشەی سێ ڕەهەندی بۆ ڕێنیشاندەری",
+        feature_search: "گەڕانی پێشکەوتوو",
+        feature_search_desc: "گەڕان بەناو شار و وڵات",
+        feature_theme: "دۆخی تاریک",
+        feature_theme_desc: "چاودێری لە شەودا",
+        feature_lang: "سێ زمان",
+        feature_lang_desc: "کوردی، ئینگلیزی، عەرەبی",
+        developer_title: "گەشەپێدەر",
+        developer_name: "دارا عبدالرحمن علی",
+        developer_role: "گەشەپێدەری مۆبایل و وێب",
+        credits_title: "سوپاس",
+        version: "وەشانی ١.٠.٠",
+        credit_osm: "نەخشە و زانیاریەکان",
+        credit_leaflet: "کتێبخانەی نەخشە",
+        credit_nominatim: "خزمەتگوزاری گەڕان"
+    },
+    en: {
+        police: "Police", 
+        university: "University", 
+        government: "Government", 
+        hospital: "Hospital", 
+        share_title: "Share Location",
+    share_native: "Share",
+    share_copy: "Copy Link",
+    confirm_clear_title: "Clear History",
+    confirm_clear: "Are you sure you want to clear all history? This action cannot be undone.",
+    history_cleared: "History cleared successfully!",
+    cancel: "Cancel",
+    confirm: "Confirm",
+        navigate: "Navigate",
+    share_maps: "Open in Maps",
+    share_text: "Check out this place",
+    share_copied: "Link copied!",
+        pharmacy: "Pharmacy", 
+        restaurant: "Restaurant", 
+        footer: "© 2025 MapGuide. All rights reserved.",
+        mosque: "Mosque", 
+        fuel: "Fuel", 
+        dozinawa: "Search",
+        school: "School",
+        current_loc: "Current Location", 
+        tap_set: "Tap to set location", 
+        nearby: "Nearby", 
+        categories: "Categories", 
+        select_cat: "Select a category", 
+          history_title: "Search History",
+    history_empty: "No search history",
+    clear_history: "Clear History",
+    confirm_clear: "Are you sure you want to clear all history?",
+    just_now: "Just now",
+    mins_ago: "mins ago",
+    hours_ago: "hours ago",
+    days_ago: "days ago",
+        finding_loc: "Locating...", 
+        confirm_loc: "Confirm", 
+        no_result: "No results", 
+        tag_near: "Nearest", 
+        tag_far: "Farthest", 
+        welcome: "Welcome", 
+        start: "Start",
+        about_title: "About the App",
+        about_desc_title: "What is this app?",
+        about_desc: "A powerful app to find the nearest important places around you. Using GPS technology and OpenStreetMap, you can quickly find the nearest hospital, pharmacy, mosque, restaurant and many more.",
+        features_title: "Features",
+        feature_gps: "Precise Location",
+        feature_gps_desc: "Using high-accuracy GPS",
+        feature_nav: "3D Navigation",
+        feature_nav_desc: "3D map for navigation",
+        feature_search: "Advanced Search",
+        feature_search_desc: "Search by city and country",
+        feature_theme: "Dark Mode",
+        feature_theme_desc: "Night viewing comfort",
+        feature_lang: "Three Languages",
+        version: "Version 1.0.0",
+        feature_lang_desc: "Kurdish, English, Arabic",
+        developer_title: "Developer",
+        developer_name: "Dara Abdulrahman Ali",
+        developer_role: "Mobile & Web Developer",
+        credits_title: "Credits",
+        credit_osm: "Maps and data",
+        credit_leaflet: "Map library",
+        credit_nominatim: "Search service"
+    },
+    ar: {
+        police: "الشرطة", 
+        university: "جامعة", 
+        government: "حكومي", 
+        hospital: "مستشفى", 
+        pharmacy: "صيدلية", 
+        confirm_clear_title: "مسح السجل",
+    confirm_clear: "هل أنت متأكد من مسح كل السجل؟ لا يمكن التراجع عن هذا الإجراء.",
+    history_cleared: "تم مسح السجل بنجاح!",
+    cancel: "إلغاء",
+    confirm: "تأكيد",
+        navigate: "التنقل",
+        share_title: "مشاركة الموقع",
+    share_native: "مشاركة",
+     history_title: "سجل البحث",
+    history_empty: "لا يوجد سجل بحث",
+    clear_history: "مسح السجل",
+    confirm_clear: "هل أنت متأكد من مسح كل السجل؟",
+    just_now: "الآن",
+    mins_ago: "دقائق مضت",
+    hours_ago: "ساعات مضت",
+    days_ago: "أيام مضت",
+    share_copy: "نسخ الرابط",
+    share_maps: "فتح في الخرائط",
+    share_text: "تحقق من هذا المكان",
+    share_copied: "تم نسخ الرابط!",
+        restaurant: "مطعم", 
+        footer: "© 2025 MapGuide. جميع الحقوق محفوظة.",
+        mosque: "مسجد", 
+        dozinawa: "بحث",
+        version: "الإصدار ١.٠.٠",
+        fuel: "وقود", 
+        school: "مدرسة",
+        current_loc: "الموقع الحالي", 
+        tap_set: "اضغط لتحديد الموقع", 
+        nearby: "الأقرب", 
+        categories: "التصنيفات", 
+        select_cat: "اختر قسماً", 
+        finding_loc: "جاري البحث...", 
+        confirm_loc: "تأكيد", 
+        no_result: "لا توجد نتائج", 
+        tag_near: "الأقرب", 
+        tag_far: "الأبعد", 
+        welcome: "أهلاً بك", 
+        start: "ابدأ",
+        about_title: "حول التطبيق",
+        about_desc_title: "ما هو هذا التطبيق؟",
+        about_desc: "تطبيق قوي للعثور على أقرب الأماكن المهمة حولك. باستخدام تقنية GPS وخرائط OpenStreetMap، يمكنك العثور بسرعة على أقرب مستشفى أو صيدلية أو مسجد أو مطعم والمزيد.",
+        features_title: "المميزات",
+        feature_gps: "تحديد الموقع الدقيق",
+        feature_gps_desc: "باستخدام GPS عالي الدقة",
+        feature_nav: "ملاحة ثلاثية الأبعاد",
+        feature_nav_desc: "خريطة ثلاثية الأبعاد للملاحة",
+        feature_search: "بحث متقدم",
+        feature_search_desc: "البحث حسب المدينة والبلد",
+        feature_theme: "الوضع الداكن",
+        feature_theme_desc: "مشاهدة مريحة ليلاً",
+        feature_lang: "ثلاث لغات",
+        feature_lang_desc: "كوردي، إنجليزي، عربي",
+        developer_title: "المطور",
+        developer_name: "دارا عبدالرحمن علی",
+        developer_role: "مطور تطبيقات ويب",
+        credits_title: "شكر وتقدير",
+        credit_osm: "الخرائط والبيانات",
+        credit_leaflet: "مكتبة الخرائط",
+        credit_nominatim: "خدمة البحث"
     }
+};
 
-    init() {
-        this.renderList();
-        this.setupListeners();
-        this.buildSlider();
-        
-        const savedTheme = localStorage.getItem('theme');
-        if(savedTheme === 'dark') {
-            this.state.isDark = true;
-            this.ui.darkModeToggle.checked = true;
-            document.body.setAttribute('data-theme', 'dark');
-        }
 
-        const savedColor = localStorage.getItem('color');
-        if(savedColor) this.changeAppColor(savedColor);
-        
-        const savedReciter = localStorage.getItem('reciter');
-        if(savedReciter) {
-            if (!isNaN(savedReciter)) {
-                this.state.currentReciter = parseInt(savedReciter);
-            } else {
-                this.state.currentReciter = savedReciter;
-            }
-        }
-        
-        const savedTafsir = localStorage.getItem('tafsir');
-        if(savedTafsir) {
-            if(!isNaN(savedTafsir)) this.state.currentTafsir = parseInt(savedTafsir);
-        }
+let lang = localStorage.getItem('app_lang') || 'ku';
+let userLat = null, userLon = null, map, marker, watchId;
+let navMap = null, routingControl = null;
 
-        this.updateReciterNameDisplay();
+// --- INIT ---
+(function() {
+    document.body.setAttribute('data-theme', localStorage.getItem('app_dark')==='true'?'dark':'light');
+    document.documentElement.style.setProperty('--primary', localStorage.getItem('app_color')||'#4361ee');
+    applyLang(lang);
+})();
 
-          // --- ئەم بەشە زیاد بکە بۆ دروستکردنی دوگمەکە ---
-        const header = document.querySelector('.tafsir-header');
-        if (header) {
-            // پاککردنەوەی کۆنەکە بۆ ئەوەی دووبارە نەبێتەوە
-            header.innerHTML = `
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <span id="tafsir-title" style="font-weight:bold; color:var(--primary);">تەفسیر</span>
-                    <button onclick="app.openTafsirSettings()" style="background:var(--bg-main); border:1px solid var(--border); color:var(--primary); padding:4px 8px; border-radius:12px; font-size:0.7rem; cursor:pointer; font-family:'Amiri';">
-                        <i class="fas fa-exchange-alt"></i> گۆڕین
-                    </button>
-                </div>
-                <button class="close-tafsir-btn" onclick="app.toggleTafsir(false)" style="background:none; border:none; color:gray; font-size:1.2rem;">
-                    <i class="fas fa-times"></i>
-                </button>
-            `;
+function startApp() {
+    document.getElementById('auth-container').style.opacity = '0';
+    setTimeout(() => document.getElementById('auth-container').style.display = 'none', 400);
+    startGPS();
+}
+
+// --- ABOUT MODAL FUNCTIONS ---
+function openAbout() {
+    document.getElementById('about-modal').style.display = 'flex';
+}
+
+function closeAbout() {
+    document.getElementById('about-modal').style.display = 'none';
+}
+
+
+// --- GPS ---
+function startGPS() {
+    document.getElementById('location-name').innerText = trans[lang].finding_loc;
+    if(navigator.geolocation) {
+        watchId = navigator.geolocation.watchPosition(
+            pos => {
+                userLat = pos.coords.latitude;
+                userLon = pos.coords.longitude;
+                updateLocUI(userLat, userLon);
+            },
+            err => { if(!userLat) document.getElementById('location-name').innerText = trans[lang].tap_set; },
+            { enableHighAccuracy: true }
+        );
     }
 }
 
-    setupListeners() {
-        document.getElementById('settings-btn').onclick = () => this.openSettings();
-        document.getElementById('close-settings').onclick = () => this.closeSettings();
-        this.ui.darkModeToggle.onchange = (e) => this.toggleTheme(e.target.checked);
-        document.getElementById('back-from-read').onclick = () => this.goHome();
+async function updateLocUI(lat, lon) {
+    try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1&accept-language=${lang}`);
+        const data = await res.json();
+        document.getElementById('location-name').innerText = data.address ? (data.address.neighbourhood || data.address.road || "Area") : `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+    } catch(e) { document.getElementById('location-name').innerText = `${lat.toFixed(4)}, ${lon.toFixed(4)}`; }
+}
 
-        this.ui.searchInput.addEventListener('input', (e) => {
-            this.state.searchQuery = e.target.value.trim();
-            this.renderList();
-        });
-
-        this.ui.colorBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                this.changeAppColor(btn.getAttribute('data-color'));
-            });
-        });
-
-        this.ui.playBtn.onclick = () => this.toggleAudio();
-        this.ui.audio.onended = () => this.playNextAyahInQueue();
-
-        this.ui.openReciterBtn.onclick = () => {
-            this.populateReciterList();
-            this.openSheet(this.ui.reciterModal);
-        };
-
-        this.ui.openTafsirBtn.onclick = () => {
-            if (this.state.pageAyahsQueue.length === 0) {
-                this.populateTafsirList();
-                this.openSheet(this.ui.tafsirModal);
-            } else {
-                this.toggleTafsir(!this.state.isTafsirOpen);
-            }
-        };
-
-        this.ui.closeSheetBtns.forEach(btn => btn.onclick = () => this.closeAllSheets());
-        this.ui.sheetOverlays.forEach(ov => ov.onclick = () => this.closeAllSheets());
-    }
-
-    buildSlider() {
-        let html = '';
-        for (let i = 1; i <= 604; i++) {
-            html += `
-                <div class="page-slide" id="slide-${i}" data-page="${i}">
-                    <div class="slide-spinner"><i class="fas fa-spinner fa-spin"></i></div>
-                    <img class="quran-page-img" alt="Page ${i}" loading="lazy">
-                </div>
-            `;
-        }
-        this.ui.slider.innerHTML = html;
-        this.setupObserver();
-    }
-
-    setupObserver() {
-        const options = { root: this.ui.slider, rootMargin: '0px', threshold: 0.5 };
-        this.pageObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const pageNum = parseInt(entry.target.getAttribute('data-page'));
-                    if (this.state.currentPage !== pageNum) {
-                        this.state.currentPage = pageNum;
-                        this.handlePageChange(pageNum);
-                    }
-                    this.loadImageForSlide(entry.target);
-                }
-            });
-        }, options);
-        document.querySelectorAll('.page-slide').forEach(slide => this.pageObserver.observe(slide));
-    }
-
-    loadImageForSlide(slideElement) {
-        const img = slideElement.querySelector('img');
-        if (!img.src) {
-            const pageNum = slideElement.getAttribute('data-page');
-            const pageStr = pageNum.toString().padStart(3, '0');
-            img.src = `https://android.quran.com/data/width_1024/page${pageStr}.png`;
-            img.onload = () => img.classList.add('loaded');
-        }
-    }
-
-    handlePageChange(newPage) {
-        this.updateHeaderInfo();
-        if(this.state.isPlaying) {
-            this.toggleAudio(); 
-            this.state.pageAyahsQueue = []; 
-        }
-    }
-
-    openPage(pageNumber) {
-        this.ui.mainHeader.style.display = 'none'; 
-        this.ui.homeView.classList.add('hidden');
-        this.ui.homeView.classList.remove('active');
-        this.ui.readView.classList.remove('hidden');
-        this.ui.readView.classList.add('active');
-
-        const targetSlide = document.getElementById(`slide-${pageNumber}`);
-        if (targetSlide) {
-            targetSlide.scrollIntoView({ behavior: 'auto' });
-            this.state.currentPage = pageNumber;
-            this.loadImageForSlide(targetSlide);
-            this.updateHeaderInfo();
-        }
-    }
-
-    goHome() {
-        // 1. شاردنەوەی لاپەڕەی خوێندنەوە
-        this.ui.readView.classList.add('hidden');
-        this.ui.readView.classList.remove('active');
-        
-        // 2. وەستاندنی دەنگ (ئەگەر لێی دەدا)
-        if(this.state.isPlaying) {
-            this.ui.audio.pause();
-            this.state.isPlaying = false;
-            this.updatePlayButtonUI();
-        }
-        
-        // 3. نیشاندانی هێدەری سەرەکی (Main Header)
-        // زۆر گرنگە: دەبێت بیکەینەوە بە flex نەک block
-        this.ui.mainHeader.style.display = 'flex'; 
-        
-        // 4. نیشاندانی لاپەڕەی سەرەکی (Home View)
-        this.ui.homeView.classList.remove('hidden');
-        this.ui.homeView.classList.add('active');
-    }
-
-    async toggleAudio() {
-        if(this.state.isPlaying) {
-            this.ui.audio.pause();
-            this.state.isPlaying = false;
-            this.updatePlayButtonUI();
+// --- MAP MODAL ---
+function openMap() {
+    document.getElementById('map-modal').style.display = 'flex';
+    const lat = userLat || 36.19, lon = userLon || 44.00;
+    setTimeout(() => {
+        if(!map) {
+            map = L.map('map').setView([lat, lon], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            marker = L.marker([lat, lon], {draggable: true}).addTo(map);
+            map.on('click', e => marker.setLatLng(e.latlng));
         } else {
-            this.state.isPlaying = true;
-            this.updatePlayButtonUI();
-            if (this.state.pageAyahsQueue.length === 0) {
-                this.ui.playIcon.className = 'fas fa-spinner fa-spin'; 
-                await this.fetchPageAudioData(this.state.currentPage);
-            }
-            this.playCurrentAyah();
+            map.setView([lat, lon], 15);
+            marker.setLatLng([lat, lon]);
+            map.invalidateSize();
         }
-    }
-
-            async fetchPageAudioData(page) {
-        try {
-            const reciter = this.state.currentReciter;
-            let audioData = [];
-
-            // هێنانی دەنگەکان
-            if (typeof reciter === 'number') {
-                const response = await fetch(`https://api.quran.com/api/v4/quran/recitations/${reciter}?page_number=${page}`);
-                const data = await response.json();
-                const textResponse = await fetch(`https://api.quran.com/api/v4/quran/verses/uthmani?page_number=${page}`);
-                const textData = await textResponse.json();
-
-                if(data.audio_files && textData.verses) {
-                    audioData = data.audio_files.map((audio, index) => ({
-                        audio_url: audio.url,
-                        verse_key: audio.verse_key,
-                        text: textData.verses[index].text_uthmani,
-                        isCustom: false
-                    }));
-                }
-            } else {
-                // هێنانی دەنگ بۆ EveryAyah
-                const response = await fetch(`https://api.quran.com/api/v4/quran/verses/uthmani?page_number=${page}`);
-                const data = await response.json();
-                if (data.verses) {
-                    audioData = data.verses.map(verse => {
-                        const [surah, ay] = verse.verse_key.split(':');
-                        const fileName = `${surah.padStart(3,'0')}${ay.padStart(3,'0')}.mp3`;
-                        return {
-                            audio_url: `https://everyayah.com/data/${reciter}/${fileName}`,
-                            verse_key: verse.verse_key,
-                            text: verse.text_uthmani,
-                            isCustom: true
-                        };
-                    });
-                }
-            }
-
-            this.state.pageAyahsQueue = audioData;
-            this.state.currentAyahIndex = 0;
-            
-            if(!this.state.isPlaying) {
-                this.state.isPlaying = true;
-            }
-            
-            // کاتێک لاپەڕە لۆد بوو، ڕاستەوخۆ یەکەم ئایەت پلەی دەکەین
-            // ئەمەش تەفسیرەکە بانگ دەکات
-            
-        } catch (error) {
-            console.error(error);
-            alert("کێشە لە هێنانی داتا");
-            this.state.isPlaying = false;
-            this.updatePlayButtonUI();
-        }
-    }
+    }, 200);
+}
+function closeMap() { document.getElementById('map-modal').style.display = 'none'; }
+function confirmLocation() {
+    const p = marker.getLatLng();
+    if(watchId) navigator.geolocation.clearWatch(watchId);
+    userLat = p.lat; userLon = p.lng;
+    updateLocUI(userLat, userLon);
+    closeMap();
+}
 
 
 
 
-            async playCurrentAyah() {
-        if (this.state.pageAyahsQueue.length > 0 && this.state.currentAyahIndex < this.state.pageAyahsQueue.length) {
-            const ayahData = this.state.pageAyahsQueue[this.state.currentAyahIndex];
-            
-            // 1. لێدانی دەنگ
-            let url = ayahData.audio_url;
-            if (!ayahData.isCustom && url && !url.startsWith('http')) {
-                url = `https://verses.quran.com/${url}`;
-            }
-            this.ui.audio.src = url;
-            this.ui.audio.play().catch(e => {
-                console.error(e);
-                this.playNextAyahInQueue();
-            });
+// --- SEARCH ---
+async function selectCategory(el, type, key) {
+    if(!userLat) { alert("Set location first"); openMap(); return; }
+     // Reset places data array
+    window.placesData = [];
 
-            // 2. هێنانی تەفسیر (هەمووی لە QuranEnc)
-            if (this.state.isTafsirOpen) {
-                this.ui.tafsirContent.innerText = "خەریکی هێنانە...";
-                
-                try {
-                    const currentId = this.state.currentTafsir;
-                    // دڵنیابوونەوە لەوەی IDـیەکە دروستە
-                    const tafsirKey = (typeof currentId === 'string') ? currentId : 'kurdish_bamoki';
-                    
-                    const verseKey = ayahData.verse_key; // "1:1"
-                    const [surah, ayah] = verseKey.split(':');
+    document.querySelectorAll('.cat-card').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('results-container').innerHTML = '<div style="text-align:center;padding:30px;">Loading...</div>';
+    document.getElementById('result-title').innerText = `${trans[lang].nearby} ${trans[lang][key]||type}`;
 
-                    // هەموویان لەم لینکەوە دێن - زۆر خێرا و مسۆگەر
-                    const response = await fetch(`https://quranenc.com/api/v1/translation/aya/${tafsirKey}/${surah}/${ayah}`);
-                    const data = await response.json();
-                    
-                    if (data && data.result && data.result.translation) {
-                        // لابردنی تێبینی ژێرپێ (footnotes) ئەگەر هەبوو
-                        let text = data.result.translation;
-                        text = text.replace(/\[\d+\]/g, ''); 
-                        this.ui.tafsirContent.innerText = text;
-                    } else {
-                        this.ui.tafsirContent.innerText = "تەفسیر بەردەست نییە.";
-                    }
+    const tagMap = {
+        'police': '["amenity"="police"]', 'university': '["amenity"="university"]', 'government': '["office"~"government"]',
+        'hospital': '["amenity"="hospital"]', 'pharmacy': '["amenity"="pharmacy"]', 'restaurant': '["amenity"="restaurant"]',
+        'mosque': '["amenity"="place_of_worship"]["religion"="muslim"]', 'fuel': '["amenity"="fuel"]', 'school': '["amenity"="school"]'
+    };
 
-                } catch (e) {
-                    console.error(e);
-                    this.ui.tafsirContent.innerText = "کێشە لە ئینتەرنێت.";
-                }
-            }
-
-        } else {
-            this.state.isPlaying = false;
-            this.state.pageAyahsQueue = []; 
-            this.updatePlayButtonUI();
-        }
-    }
-
-
-
-
-
-    playNextAyahInQueue() {
-        if (!this.state.isPlaying) return;
-        this.state.currentAyahIndex++;
-        if (this.state.currentAyahIndex < this.state.pageAyahsQueue.length) {
-            this.playCurrentAyah();
-        } else {
-            this.state.isPlaying = false;
-            this.updatePlayButtonUI();
-        }
-    }
-
-    updatePlayButtonUI() {
-        if(this.state.isPlaying) {
-            this.ui.playIcon.className = 'fas fa-pause';
-            this.ui.playBtn.classList.add('playing');
-        } else {
-            this.ui.playIcon.className = 'fas fa-play';
-            this.ui.playBtn.classList.remove('playing');
-        }
-    }
-
-    toggleTafsir(show) {
-        this.state.isTafsirOpen = show;
-        if (show) {
-            this.ui.tafsirPanel.classList.remove('hidden');
-            this.ui.openTafsirBtn.querySelector('.icon-label').style.color = 'var(--primary)';
-        } else {
-            this.ui.tafsirPanel.classList.add('hidden');
-            this.ui.openTafsirBtn.querySelector('.icon-label').style.color = 'gray';
-        }
-    }
-
-        // ئەم فەنکشنە لیستی تەفسیرەکان دەکاتەوە
-        openTafsirSettings() {
-        this.populateTafsirList(); 
-        // دڵنیابوونەوە لەوەی مۆداڵەکە دەدۆزێتەوە
-        const modal = document.getElementById('tafsir-modal');
-        if (modal) {
-            this.openSheet(modal);
-        } else {
-            alert("لیستی تەفسیرەکان نادۆزرێتەوە");
-        }
-    }
-
-
-
-    // Helpers
-    openSheet(modal) { modal.classList.remove('hidden'); setTimeout(() => modal.classList.add('active'), 10); }
-    closeAllSheets() { this.ui.reciterModal.classList.remove('active'); this.ui.tafsirModal.classList.remove('active'); }
-    
-    populateReciterList() {
-        this.ui.reciterListContainer.innerHTML = recitersList.map(r => `
-            <div class="sheet-item ${this.state.currentReciter == r.id ? 'selected' : ''}" onclick="app.selectReciter('${r.id}')">
-                <span>${r.name}</span><i class="fas fa-check"></i>
-            </div>`).join('');
-    }
-
-    populateTafsirList() {
-        this.ui.tafsirListContainer.innerHTML = tafsirList.map(t => `
-            <div class="sheet-item ${this.state.currentTafsir === t.id ? 'selected' : ''}" onclick="app.selectTafsir('${t.id}')">
-                <span>${t.name}</span><i class="fas fa-check"></i>
-            </div>`).join('');
-    }
-
-    selectReciter(id) {
-        let reciterId = id;
-        if (!isNaN(id)) { reciterId = parseInt(id); }
+    try {
+        const q = `[out:json][timeout:25];(node${tagMap[type]}(around:5000,${userLat},${userLon});way${tagMap[type]}(around:5000,${userLat},${userLon});relation${tagMap[type]}(around:5000,${userLat},${userLon}););out center;`;
+        const res = await fetch('https://overpass-api.de/api/interpreter', { method: 'POST', body: "data=" + encodeURIComponent(q) });
+        const data = await res.json();
         
-        this.state.currentReciter = reciterId;
-        localStorage.setItem('reciter', id);
+        const list = document.getElementById('results-container');
+        list.innerHTML = '';
         
-        this.updateReciterNameDisplay();
-        this.closeAllSheets();
-        
-        if(this.state.isPlaying) {
-            this.ui.audio.pause();
-            this.state.isPlaying = false;
-            this.updatePlayButtonUI();
-        }
-        this.state.pageAyahsQueue = [];
-        setTimeout(() => this.toggleAudio(), 500);
-    }
+        if(!data.elements.length) { list.innerHTML = `<p style="text-align:center;opacity:0.5">${trans[lang].no_result}</p>`; return; }
 
-    updateReciterNameDisplay() {
-        const reciterId = this.state.currentReciter;
-        const reciter = recitersList.find(r => r.id == reciterId);
-        if (reciter && this.ui.currentReciterName) {
-            this.ui.currentReciterName.innerText = reciter.name;
-        }
-    }
+        const items = data.elements.map(p => {
+            const lat = p.lat || p.center.lat;
+            const lon = p.lon || p.center.lon;
+            return { ...p, lat, lon, dist: calcDist(userLat, userLon, lat, lon) };
+        }).sort((a,b) => a.dist - b.dist).slice(0, 50);
 
-
-
-    selectTafsir(id) {
-        this.state.currentTafsir = id;
-        localStorage.setItem('tafsir', id);
-        
-        this.closeAllSheets();
-        this.toggleTafsir(true); // دڵنیابوونەوە لەوەی سندوقەکە کراوەیە
-        
-        // پشکنین: ئایا ئایەتێک هەیە بۆ ئەوەی تەفسیرەکەی بگۆڕین؟
-        if (this.state.pageAyahsQueue.length > 0) {
+        items.forEach((p, idx) => {
+            const name = p.tags['name:ckb'] || p.tags['name:ku'] || p.tags['name'] || "Unknown";
+            const safeName = name.replace(/'/g, "\\'");
+            const distStr = p.dist < 1 ? Math.round(p.dist * 1000) : p.dist.toFixed(1);
+            const unit = p.dist < 1 ? "m" : "km";
             
-            // حاڵەتی یەکەم: ئەگەر دەنگ خەریکی لێدان بوو
-            if (this.state.isPlaying) {
-                this.playCurrentAyah(); // هەمووی نوێ دەکاتەوە
-            } 
-            
-            // حاڵەتی دووەم: ئەگەر دەنگ وەستابوو (Paused)
-            // لێرەدا نامانەوێت دەنگەکە دەست پێ بکات، تەنها نووسینەکە دەگۆڕین
-            else {
-                const ayahData = this.state.pageAyahsQueue[this.state.currentAyahIndex];
-                const [surah, ayah] = ayahData.verse_key.split(':');
-                
-                this.ui.tafsirContent.innerText = "خەریکی گۆڕینە...";
-                
-                // هێنانی دەقە نوێیەکە بەبێ دەنگ
-                fetch(`https://quranenc.com/api/v1/translation/aya/${id}/${surah}/${ayah}`)
-                    .then(res => res.json())
-                    .then(data => {
-                         if (data && data.result && data.result.translation) {
-                            let text = data.result.translation.replace(/\[\d+\]/g, '');
-                            this.ui.tafsirContent.innerText = text;
-                        }
-                    })
-                    .catch(() => {
-                        this.ui.tafsirContent.innerText = "کێشە لە گۆڕینی تەفسیر.";
-                    });
-            }
-        }
-    }
+            let badge = idx === 0 ? `<span class="status-tag tag-near">${trans[lang].tag_near}</span>` : '';
 
-
-
-
-
-
-
-    updateHeaderInfo() {
-        const page = this.state.currentPage;
-        let currentJuz = 1;
-        for (let i = juzData.length - 1; i >= 0; i--) { if (page >= juzData[i].page) { currentJuz = juzData[i].id; break; } }
-        let currentSurahName = "الفاتحة";
-        for (let i = surahs.length - 1; i >= 0; i--) { if (page >= surahs[i].page) { currentSurahName = surahs[i].name; break; } }
-        this.ui.headerSurah.innerText = `سورەتی ${currentSurahName}`;
-        this.ui.headerDetails.innerText = `جوزءی ${currentJuz} • لاپەڕە ${page}`;
-    }
-
-    normalizeInput(str) { if (!str) return ''; return str.replace(/[٠١٢٣٤٥٦٧٨٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).toLowerCase(); }
-    openSettings() { this.ui.homeView.classList.add('hidden'); this.ui.homeView.classList.remove('active'); this.ui.mainHeader.style.display = 'none'; this.ui.settingsView.classList.remove('hidden'); this.ui.settingsView.classList.add('active'); }
-    closeSettings() { this.ui.settingsView.classList.add('hidden'); this.ui.settingsView.classList.remove('active'); this.ui.mainHeader.style.display = 'flex'; this.ui.homeView.classList.remove('hidden'); this.ui.homeView.classList.add('active'); }
-    
-    switchTab(tabName) {
-        this.state.activeTab = tabName; this.state.searchQuery = ''; this.ui.searchInput.value = '';
-        this.ui.tabBtns.forEach(btn => { if(btn.innerText === (tabName === 'surah' ? 'سورەت' : 'جوزء')) btn.classList.add('active'); else btn.classList.remove('active'); });
-        this.renderList();
-    }
-
-    renderList() {
-        let html = '';
-        const query = this.normalizeInput(this.state.searchQuery);
-        if (this.state.activeTab === 'surah') {
-            const filteredSurahs = surahs.filter(s => s.name.includes(this.state.searchQuery) || s.id.toString().includes(query));
-            html = filteredSurahs.map(s => `
-    <div class="list-item" onclick="app.openPage(${s.page})">
-        <div class="item-number">${s.id}</div>
-        <div class="item-info">
-            <h3>${s.name}</h3>
-            <p>${s.verses} ئایەت</p>
+    list.innerHTML += `
+    <div class="place-item">
+        ${badge}
+        <div class="dist-badge" onclick="startNav(${p.lat}, ${p.lon}, '${safeName}')">
+            <span class="dist-val">${distStr}</span>
+            <span class="dist-unit">${unit}</span>
         </div>
-        <i class="fas fa-chevron-left"></i>
-    </div>
-`).join('');
-        } else {
-            const filteredJuz = juzData.filter(j => j.id.toString().includes(query));
-            html = filteredJuz.map(j => `<div class="list-item" onclick="app.openPage(${j.page})"><div class="item-number">${j.id}</div><div class="item-info"><h3>جوزءی ${j.id}</h3><p style="font-size:0.8rem; color:gray;">لاپەڕە ${j.page}</p></div><i class="fas fa-chevron-left" style="color:var(--border)"></i></div>`).join('');
-        }
-        this.ui.listContainer.innerHTML = html || '<p style="text-align:center; padding:20px; color:gray;">هیچ ئەنجامێک نەدۆزرایەوە</p>';
-    }
+        <div class="info-box" onclick="startNav(${p.lat}, ${p.lon}, '${safeName}')">
+            <h4>${name}</h4>
+            <span class="sub-txt">${p.tags['name:en']||''}</span>
+        </div>
+        <div class="actions-group">
+            <button class="action-btn share-btn-small" onclick="event.stopPropagation(); openShareModal(${p.lat}, ${p.lon}, '${safeName}', ${p.dist})" title="${trans[lang].share_title || 'هاوبەشکردن'}">
+                <span class="material-icons-round">share</span>
+            </button>
+            <button class="action-btn nav-btn-small" onclick="event.stopPropagation(); startNav(${p.lat}, ${p.lon}, '${safeName}')" title="${trans[lang].navigate || 'ڕێنیشاندەر'}">
+                <span class="material-icons-round">navigation</span>
+            </button>
+        </div>
+    </div>`;
+});
 
-    toggleTheme(isDark) { 
-        this.state.isDark = isDark; 
-        document.body.setAttribute('data-theme', isDark ? 'dark' : 'light'); 
-        localStorage.setItem('theme', isDark ? 'dark' : 'light'); 
-    }
+    } catch(e) { document.getElementById('results-container').innerHTML = "Error"; }
+}
+
+
+// --- NAV ---
+function startNav(destLat, destLon, destName) {
+    if(typeof L === 'undefined') return alert("Map Error");
     
-    changeAppColor(color) { 
-        this.state.currentColor = color; 
-        document.documentElement.style.setProperty('--primary', color); 
-        this.ui.colorBtns.forEach(btn => { if(btn.getAttribute('data-color') === color) btn.classList.add('selected'); else btn.classList.remove('selected'); }); 
-        localStorage.setItem('color', color); 
+    document.getElementById('nav-modal').style.display = 'flex';
+    document.getElementById('nav-dest-name').innerText = destName;
+    
+    setTimeout(() => {
+        if(navMap) { navMap.remove(); navMap = null; }
+        
+        navMap = L.map('nav-map', { center: [userLat, userLon], zoom: 16, zoomControl: false, attributionControl: false });
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19}).addTo(navMap);
+        navMap.invalidateSize();
+
+        if(L.Routing) {
+            L.Routing.control({
+                waypoints: [L.latLng(userLat, userLon), L.latLng(destLat, destLon)],
+                routeWhileDragging: false, showAlternatives: false, fitSelectedRoutes: true,
+                lineOptions: { styles: [{color: '#4361ee', opacity: 0.8, weight: 6}] },
+                createMarker: function(i, wp, n) {
+                    return L.marker(wp.latLng, {icon: L.divIcon({className:'p', html:'<div style="background:#4361ee;width:15px;height:15px;border-radius:50%;border:2px solid white"></div>'})});
+                },
+                containerClassName: 'display-none'
+            }).addTo(navMap);
+        }
+    }, 300);
+}
+function closeNav() { document.getElementById('nav-modal').style.display = 'none'; }
+
+// --- UTILS ---
+function toggleLangMenu() { document.querySelector('.lang-dropdown').classList.toggle('active'); }
+function setLang(l) {
+    lang = l;
+    localStorage.setItem('app_lang', l);
+    applyLang(l);
+    
+    // ئەم دێڕە مێنۆکە دادەخاتەوە
+    document.querySelector('.lang-dropdown').classList.remove('active');
+}
+
+function applyLang(l) {
+    document.body.dir = l==='en'?'ltr':'rtl';
+    document.getElementById('cur-lang').innerText = l.toUpperCase();
+    
+    // Update all elements with data-key attribute
+    document.querySelectorAll('[data-key]').forEach(e => {
+        const key = e.getAttribute('data-key');
+        if(trans[l][key]) e.innerText = trans[l][key];
+    });
+    
+    // --- NEW: Update input placeholders based on language ---
+    const locationSearchInput = document.getElementById('location-search-input');
+    if(locationSearchInput) {
+        const placeholders = {
+            ku: "گەڕان بەناو شار، گوند یان وڵات...",
+            en: "Search city, village or country...",
+            ar: "البحث عن مدينة أو قرية أو بلد..."
+        };
+        locationSearchInput.placeholder = placeholders[l];
+    }
+}
+function toggleDarkMode() { 
+    const isDark = document.body.getAttribute('data-theme') === 'dark';
+    document.body.setAttribute('data-theme', isDark?'light':'dark');
+    localStorage.setItem('app_dark', !isDark);
+}
+function togglePalette() { document.getElementById('theme-palette').classList.toggle('active'); }
+function setThemeColor(c) {
+     document.documentElement.style.setProperty('--primary', c);
+     localStorage.setItem('app_color', c); 
+     // ئەم دێڕە مێنۆکە دادەخاتەوە
+    document.getElementById('theme-palette').classList.remove('active');
+    }
+function calcDist(lat1, lon1, lat2, lon2) {
+    const p = 0.017453292519943295;
+    const a = 0.5 - Math.cos((lat2 - lat1) * p)/2 + Math.cos(lat1 * p) * Math.cos(lat2 * p) * (1 - Math.cos((lon2 - lon1) * p))/2;
+    return 12742 * Math.asin(Math.sqrt(a));
+}
+
+
+
+// --- LOCATION SEARCH FUNCTIONALITY ---
+let searchTimeout;
+const searchInput = document.getElementById('location-search-input');
+const searchDropdown = document.getElementById('search-results-dropdown');
+const searchLoader = document.getElementById('search-loader');
+
+// Event listener for typing in search box
+if(searchInput) {
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        
+        clearTimeout(searchTimeout);
+        
+        if(query.length < 2) {
+            searchDropdown.classList.remove('show');
+            searchDropdown.innerHTML = '';
+            return;
+        }
+        
+        // Show loader
+        searchLoader.style.display = 'block';
+        
+        // Debounce: Wait 500ms after user stops typing
+        searchTimeout = setTimeout(() => {
+            searchLocation(query);
+        }, 500);
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if(!e.target.closest('.search-location-box')) {
+            searchDropdown.classList.remove('show');
+        }
+    });
+}
+
+
+
+async function searchLocation(query) {
+    try {
+        // Use Nominatim Geocoding API
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&accept-language=${lang}`;
+        const response = await fetch(url);
+        const results = await response.json();
+        
+        searchLoader.style.display = 'none';
+        
+        if(results.length === 0) {
+            searchDropdown.innerHTML = `<div class="no-results">${trans[lang].no_result || 'هیچ نەدۆزرایەوە'}</div>`;
+            searchDropdown.classList.add('show');
+            return;
+        }
+        
+        // Display results
+        searchDropdown.innerHTML = '';
+        results.forEach(result => {
+            const item = document.createElement('div');
+            item.className = 'search-result-item';
+            item.innerHTML = `
+                <span class="material-icons-round">place</span>
+                <div class="search-result-info">
+                    <div class="search-result-name">${result.display_name.split(',')[0]}</div>
+                    <div class="search-result-address">${result.display_name}</div>
+                </div>
+            `;
+            
+            item.addEventListener('click', () => {
+                selectSearchResult(result);
+            });
+            
+            searchDropdown.appendChild(item);
+        });
+        
+        searchDropdown.classList.add('show');
+        
+    } catch(error) {
+        console.error('Search error:', error);
+        searchLoader.style.display = 'none';
+        searchDropdown.innerHTML = `<div class="no-results">هەڵە لە گەڕاندا</div>`;
+        searchDropdown.classList.add('show');
     }
 }
 
-const app = new QuranApp();
+
+
+function selectSearchResult(result) {
+    const lat = parseFloat(result.lat);
+    const lon = parseFloat(result.lon);
+    
+    // Stop GPS tracking
+    if(watchId) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+    }
+    
+    // Update location
+    userLat = lat;
+    userLon = lon;
+    
+    // Update UI
+    const locationName = result.display_name.split(',')[0];
+    document.getElementById('location-name').innerText = locationName;
+    searchInput.value = locationName;
+    
+    // Close dropdown
+    searchDropdown.classList.remove('show');
+    
+    // If user is viewing map, update it
+    if(map && marker) {
+        map.setView([lat, lon], 13);
+        marker.setLatLng([lat, lon]);
+    }
+    
+    // Show success feedback
+    searchInput.style.borderColor = '#10b981';
+    setTimeout(() => {
+        searchInput.style.borderColor = '';
+    }, 1000);
+}
+
+
+
+
+// --- SHARE FUNCTIONALITY ---
+let currentShareData = null;
+
+function openShareModal(lat, lon, name, distance) {
+    currentShareData = { lat, lon, name, distance };
+    
+    document.getElementById('share-location-name').innerText = name;
+    document.getElementById('share-location-distance').innerText = `${distance} ${distance < 1 ? 'm' : 'km'} ${trans[lang].nearby || 'دوور'}`;
+    document.getElementById('share-modal').style.display = 'flex';
+}
+
+function closeShareModal() {
+    document.getElementById('share-modal').style.display = 'none';
+}
+
+async function shareViaWeb() {
+    if (!currentShareData) return;
+    
+    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${currentShareData.lat},${currentShareData.lon}`;
+    
+    const shareData = {
+        title: currentShareData.name,
+        text: `${trans[lang].share_text || 'سەیری ئەم شوێنە بکە'}: ${currentShareData.name}`,
+        url: googleMapsUrl
+    };
+    
+    try {
+        if (navigator.share) {
+            await navigator.share(shareData);
+            console.log('Shared successfully');
+        } else {
+            // Fallback: Copy to clipboard
+            await navigator.clipboard.writeText(googleMapsUrl);
+            alert(trans[lang].share_copied || 'لینکەکە کۆپی کرا!');
+        }
+    } catch (err) {
+        console.error('Error sharing:', err);
+    }
+}
+
+async function copyLocation() {
+    if (!currentShareData) return;
+    
+    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${currentShareData.lat},${currentShareData.lon}`;
+    
+    try {
+        await navigator.clipboard.writeText(googleMapsUrl);
+        alert(trans[lang].share_copied || 'لینکەکە کۆپی کرا!');
+    } catch (err) {
+        console.error('Error copying:', err);
+    }
+}
+
+
+// Function to trigger location modal
+function triggerLocModal() {
+    // Check local storage with unique key
+    if (localStorage.getItem('app_loc_status') === 'granted') {
+        getUserLocation(); // بانگکردنی فانکشنە ئەسڵییەکەی خۆت
+        return;
+    }
+    
+    // ئەگەر پێشتر ڕەتی نەکردبێتەوە (یان ئەگەر دەتەوێت هەموو جارێک بێت ئەم مەرجە لادە)
+    if (localStorage.getItem('app_loc_status') !== 'denied') {
+        const modal = document.getElementById('loc-permission-modal');
+        modal.style.display = 'flex';
+        setTimeout(() => modal.classList.add('loc-show'), 10);
+    }
+}
+
+// ئەم فانکشنە بخە ناو دوگمەی "دەستپێکردن"ەکەت (Get Started)
+// <button ... onclick="handleAppStart()">...
+function handleAppStart() {
+    // کۆدەکانی تری خۆت بۆ لابردنی Welcome Screen (ئەگەر هەیە)
+    // document.getElementById('welcome-screen')....
+    
+    triggerLocModal();
+}
+
+function confirmLocPermission() {
+    dismissLocModal();
+    localStorage.setItem('app_loc_status', 'granted');
+    getUserLocation(); // بانگکردنی فانکشنە ئەسڵییەکەی خۆت
+}
+
+function dismissLocModal() {
+    const modal = document.getElementById('loc-permission-modal');
+    modal.classList.remove('loc-show');
+    setTimeout(() => {
+        modal.style.display = 'none';
+    }, 300);
+    // ئەگەر نەتەوێت ئیتر بێزارت بکات:
+    // localStorage.setItem('app_loc_status', 'denied');
+}
+
+
+
+
     </script>
 </body>
 </html>
